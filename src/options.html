@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReplySage Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <header class="options-header">
+      <h1>ReplySage Settings</h1>
+      <p>Configure your AI email assistant preferences</p>
+    </header>
+
+    <main class="options-content">
+      <section class="settings-section">
+        <h2>Processing Options</h2>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enableLocalProcessing" checked>
+            <span class="checkmark"></span>
+            Enable Local Processing
+          </label>
+          <p class="setting-description">
+            Process emails locally using small AI models for better privacy and speed.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enableCloudFallback">
+            <span class="checkmark"></span>
+            Enable Cloud Fallback
+          </label>
+          <p class="setting-description">
+            Use cloud AI services for complex tasks when local processing isn't sufficient.
+          </p>
+        </div>
+
+        <div class="setting-item" id="apiKeySection" style="display: none;">
+          <label for="userApiKey" class="setting-label">API Key</label>
+          <input type="password" id="userApiKey" placeholder="Enter your OpenAI/Anthropic API key">
+          <p class="setting-description">
+            Your API key is stored locally and never sent to our servers.
+          </p>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Privacy & Security</h2>
+        
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enablePIIRedaction" checked>
+            <span class="checkmark"></span>
+            Enable PII Redaction
+          </label>
+          <p class="setting-description">
+            Automatically redact personal information before sending to cloud services.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enableCaching" checked>
+            <span class="checkmark"></span>
+            Enable Caching
+          </label>
+          <p class="setting-description">
+            Cache analysis results locally to avoid reprocessing the same emails.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enableAnalytics">
+            <span class="checkmark"></span>
+            Enable Analytics
+          </label>
+          <p class="setting-description">
+            Send anonymous usage data to help improve the extension (optional).
+          </p>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>AI Preferences</h2>
+        
+        <div class="setting-item">
+          <label for="preferredTone" class="setting-label">Preferred Tone</label>
+          <select id="preferredTone">
+            <option value="casual">Casual</option>
+            <option value="formal">Formal</option>
+            <option value="concise">Concise</option>
+          </select>
+        </div>
+
+        <div class="setting-item">
+          <label for="maxSummaryLength" class="setting-label">Max Summary Length</label>
+          <input type="range" id="maxSummaryLength" min="50" max="500" value="200">
+          <span id="summaryLengthValue">200</span> words
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enableThreadAnalysis">
+            <span class="checkmark"></span>
+            Enable Thread Analysis
+          </label>
+          <p class="setting-description">
+            Analyze entire email threads for better context and summaries.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" id="enableSimilaritySearch">
+            <span class="checkmark"></span>
+            Enable Similarity Search
+          </label>
+          <p class="setting-description">
+            Find similar emails and group related conversations.
+          </p>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Data Management</h2>
+        
+        <div class="setting-item">
+          <button id="clearCache" class="action-button secondary">
+            Clear Cache
+          </button>
+          <p class="setting-description">
+            Remove all cached analysis data and start fresh.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <button id="exportData" class="action-button secondary">
+            Export Data
+          </button>
+          <p class="setting-description">
+            Download your analysis data for backup or migration.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <button id="importData" class="action-button secondary">
+            Import Data
+          </button>
+          <p class="setting-description">
+            Import previously exported analysis data.
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <button id="manageModels" class="action-button secondary">
+            Manage AI Models
+          </button>
+          <p class="setting-description">
+            Download and manage local AI models for offline processing.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="options-footer">
+      <button id="saveSettings" class="action-button primary">
+        Save Settings
+      </button>
+      <button id="resetSettings" class="action-button secondary">
+        Reset to Defaults
+      </button>
+    </footer>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
