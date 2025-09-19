@@ -118,6 +118,14 @@ class ReplySageOptions {
     document.getElementById('performanceDashboard').addEventListener('click', () => {
       this.openPerformanceDashboard()
     })
+
+    document.getElementById('betaTesting').addEventListener('click', () => {
+      this.openBetaTesting()
+    })
+
+    document.getElementById('storeSubmission').addEventListener('click', () => {
+      this.openStoreSubmission()
+    })
   }
 
   updateUI() {
@@ -1142,6 +1150,449 @@ class ReplySageOptions {
     } catch (error) {
       console.error('ReplySage: Failed to download quantized model:', error)
       this.showNotification(`Failed to download ${modelName}`, 'error')
+    }
+  }
+
+  async openBetaTesting() {
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Beta Testing & QA</h2>
+          <button class="close-button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="beta-testing-content">
+            <div class="loading">Loading testing framework...</div>
+          </div>
+        </div>
+      </div>
+    `
+
+    document.body.appendChild(modal)
+
+    // Close modal handlers
+    modal.querySelector('.close-button').addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal)
+      }
+    })
+
+    // Load beta testing content
+    await this.loadBetaTestingContent()
+  }
+
+  async loadBetaTestingContent() {
+    try {
+      const content = document.getElementById('beta-testing-content')
+      if (!content) return
+
+      content.innerHTML = `
+        <div class="beta-testing-panel">
+          <div class="panel-header">
+            <h3>Beta Testing & QA</h3>
+            <p>Run comprehensive tests to ensure quality and reliability before release.</p>
+          </div>
+
+          <div class="testing-controls">
+            <div class="control-group">
+              <label for="test-suite-select">Test Suite:</label>
+              <select id="test-suite-select" class="test-suite-select">
+                <option value="all">All Test Suites</option>
+                <option value="unit">Unit Tests</option>
+                <option value="integration">Integration Tests</option>
+                <option value="e2e">End-to-End Tests</option>
+                <option value="performance">Performance Tests</option>
+                <option value="security">Security Tests</option>
+                <option value="accessibility">Accessibility Tests</option>
+              </select>
+            </div>
+
+            <div class="control-buttons">
+              <button id="run-tests-btn" class="run-tests-button">
+                🧪 Run Tests
+              </button>
+              <button id="generate-report-btn" class="generate-report-button" disabled>
+                📊 Generate Report
+              </button>
+              <button id="export-logs-btn" class="export-logs-button">
+                📋 Export Logs
+              </button>
+            </div>
+          </div>
+
+          <div id="test-results" class="test-results" style="display: none;">
+            <!-- Test results will be populated here -->
+          </div>
+
+          <div class="testing-info">
+            <h4>Testing Guidelines</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <h5>Unit Tests</h5>
+                <p>Test individual components and functions in isolation</p>
+              </div>
+              <div class="info-item">
+                <h5>Integration Tests</h5>
+                <p>Test how different components work together</p>
+              </div>
+              <div class="info-item">
+                <h5>E2E Tests</h5>
+                <p>Test complete user workflows from start to finish</p>
+              </div>
+              <div class="info-item">
+                <h5>Performance Tests</h5>
+                <p>Test speed, memory usage, and resource consumption</p>
+              </div>
+              <div class="info-item">
+                <h5>Security Tests</h5>
+                <p>Test encryption, privacy, and security features</p>
+              </div>
+              <div class="info-item">
+                <h5>Accessibility Tests</h5>
+                <p>Test keyboard navigation and screen reader compatibility</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+
+      // Add event listeners
+      document.getElementById('run-tests-btn').addEventListener('click', () => {
+        this.runTests()
+      })
+
+      document.getElementById('generate-report-btn').addEventListener('click', () => {
+        this.generateTestReport()
+      })
+
+      document.getElementById('export-logs-btn').addEventListener('click', () => {
+        this.exportLogs()
+      })
+
+    } catch (error) {
+      console.error('ReplySage: Failed to load beta testing content:', error)
+    }
+  }
+
+  async runTests() {
+    const runButton = document.getElementById('run-tests-btn')
+    const resultsDiv = document.getElementById('test-results')
+    const suiteSelect = document.getElementById('test-suite-select')
+    
+    runButton.disabled = true
+    runButton.textContent = '⏳ Running Tests...'
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'RUN_TESTS',
+        payload: { suiteId: suiteSelect.value }
+      })
+
+      if (response.success) {
+        this.lastTestReports = response.reports
+        this.displayTestResults(response.reports)
+        resultsDiv.style.display = 'block'
+        document.getElementById('generate-report-btn').disabled = false
+      } else {
+        throw new Error(response.error)
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to run tests:', error)
+      resultsDiv.innerHTML = `<div class="error">Failed to run tests: ${error.message}</div>`
+      resultsDiv.style.display = 'block'
+    } finally {
+      runButton.disabled = false
+      runButton.textContent = '🧪 Run Tests'
+    }
+  }
+
+  displayTestResults(reports) {
+    const resultsDiv = document.getElementById('test-results')
+    
+    const totalTests = reports.reduce((sum, r) => sum + r.totalTests, 0)
+    const passedTests = reports.reduce((sum, r) => sum + r.passedTests, 0)
+    const failedTests = reports.reduce((sum, r) => sum + r.failedTests, 0)
+    const skippedTests = reports.reduce((sum, r) => sum + r.skippedTests, 0)
+    const totalDuration = reports.reduce((sum, r) => sum + r.duration, 0)
+    const successRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0
+
+    resultsDiv.innerHTML = `
+      <div class="results-summary">
+        <div class="summary-card">
+          <div class="summary-icon">📊</div>
+          <div class="summary-content">
+            <div class="summary-value">${totalTests}</div>
+            <div class="summary-label">Total Tests</div>
+          </div>
+        </div>
+
+        <div class="summary-card success">
+          <div class="summary-icon">✅</div>
+          <div class="summary-content">
+            <div class="summary-value">${passedTests}</div>
+            <div class="summary-label">Passed</div>
+          </div>
+        </div>
+
+        <div class="summary-card error">
+          <div class="summary-icon">❌</div>
+          <div class="summary-content">
+            <div class="summary-value">${failedTests}</div>
+            <div class="summary-label">Failed</div>
+          </div>
+        </div>
+
+        <div class="summary-card warning">
+          <div class="summary-icon">⏭️</div>
+          <div class="summary-content">
+            <div class="summary-value">${skippedTests}</div>
+            <div class="summary-label">Skipped</div>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">⏱️</div>
+          <div class="summary-content">
+            <div class="summary-value">${(totalDuration / 1000).toFixed(1)}s</div>
+            <div class="summary-label">Duration</div>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">📈</div>
+          <div class="summary-content">
+            <div class="summary-value">${successRate.toFixed(1)}%</div>
+            <div class="summary-label">Success Rate</div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  async generateTestReport() {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'GENERATE_TEST_REPORT',
+        payload: { reports: this.lastTestReports || [] }
+      })
+
+      if (response.success) {
+        const blob = new Blob([response.report], { type: 'text/markdown' })
+        const url = URL.createObjectURL(blob)
+        
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `replysage-test-report-${new Date().toISOString().split('T')[0]}.md`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to generate test report:', error)
+    }
+  }
+
+  async exportLogs() {
+    try {
+      const logs = {
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        extensionVersion: chrome.runtime.getManifest().version,
+        logs: []
+      }
+
+      const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `replysage-logs-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('ReplySage: Failed to export logs:', error)
+    }
+  }
+
+  async openStoreSubmission() {
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Store Submission</h2>
+          <button class="close-button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="store-submission-content">
+            <div class="loading">Loading store submission tools...</div>
+          </div>
+        </div>
+      </div>
+    `
+
+    document.body.appendChild(modal)
+
+    modal.querySelector('.close-button').addEventListener('click', () => {
+      document.body.removeChild(modal)
+    })
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal)
+      }
+    })
+
+    await this.loadStoreSubmissionContent()
+  }
+
+  async loadStoreSubmissionContent() {
+    try {
+      const content = document.getElementById('store-submission-content')
+      if (!content) return
+
+      const validation = await chrome.runtime.sendMessage({ type: 'VALIDATE_STORE_SUBMISSION' })
+      
+      content.innerHTML = `
+        <div class="store-submission-panel">
+          <div class="panel-header">
+            <h3>Store Submission Validation</h3>
+            <p>Validate and prepare the extension for Chrome Web Store submission.</p>
+          </div>
+
+          <div class="validation-results">
+            <h4>Validation Results</h4>
+            <div class="validation-status ${validation.validation.isValid ? 'valid' : 'invalid'}">
+              ${validation.validation.isValid ? '✅ Valid' : '❌ Invalid'}
+            </div>
+            
+            ${validation.validation.errors.length > 0 ? `
+              <div class="validation-errors">
+                <h5>Errors:</h5>
+                <ul>
+                  ${validation.validation.errors.map(error => `<li>${error}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+            
+            ${validation.validation.warnings.length > 0 ? `
+              <div class="validation-warnings">
+                <h5>Warnings:</h5>
+                <ul>
+                  ${validation.validation.warnings.map(warning => `<li>${warning}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="submission-actions">
+            <button id="generate-package-btn" class="action-button primary">
+              📦 Generate Submission Package
+            </button>
+            <button id="download-manifest-btn" class="action-button secondary">
+              📄 Download Manifest
+            </button>
+            <button id="download-privacy-policy-btn" class="action-button secondary">
+              🔒 Download Privacy Policy
+            </button>
+          </div>
+        </div>
+      `
+
+      document.getElementById('generate-package-btn').addEventListener('click', () => {
+        this.generateSubmissionPackage()
+      })
+
+      document.getElementById('download-manifest-btn').addEventListener('click', () => {
+        this.downloadManifest()
+      })
+
+      document.getElementById('download-privacy-policy-btn').addEventListener('click', () => {
+        this.downloadPrivacyPolicy()
+      })
+
+    } catch (error) {
+      console.error('ReplySage: Failed to load store submission content:', error)
+    }
+  }
+
+  async generateSubmissionPackage() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GENERATE_STORE_PACKAGE' })
+      
+      if (response.success) {
+        const package = response.package
+        const zipContent = JSON.stringify(package, null, 2)
+        
+        const blob = new Blob([zipContent], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `replysage-store-package-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to generate submission package:', error)
+    }
+  }
+
+  async downloadManifest() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GENERATE_STORE_PACKAGE' })
+      
+      if (response.success) {
+        const manifest = response.package.manifest
+        const manifestContent = JSON.stringify(manifest, null, 2)
+        
+        const blob = new Blob([manifestContent], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'manifest.json'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to download manifest:', error)
+    }
+  }
+
+  async downloadPrivacyPolicy() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GENERATE_STORE_PACKAGE' })
+      
+      if (response.success) {
+        const privacyPolicy = response.package.privacyPolicy
+        
+        const blob = new Blob([privacyPolicy], { type: 'text/markdown' })
+        const url = URL.createObjectURL(blob)
+        
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'privacy-policy.md'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to download privacy policy:', error)
     }
   }
 }

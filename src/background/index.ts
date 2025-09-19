@@ -14,6 +14,10 @@ import { ThreadManager } from '@/utils/thread-manager'
 import { PerformanceMonitor } from '@/utils/performance-monitor'
 import { WorkerManager } from '@/utils/worker-manager'
 import { QuantizedModelManager } from '@/utils/quantized-model-manager'
+import { EncryptionManager } from '@/utils/encryption-manager'
+import { DataPrivacyManager } from '@/utils/data-privacy-manager'
+import { TestingFramework } from '@/utils/testing-framework'
+import { StoreSubmissionManager } from '@/utils/store-submission'
 
 class ReplySageBackground {
   private settings: UserSettings
@@ -34,6 +38,10 @@ class ReplySageBackground {
   private performanceMonitor: PerformanceMonitor
   private workerManager: WorkerManager
   private quantizedModelManager: QuantizedModelManager
+  private encryptionManager: EncryptionManager
+  private dataPrivacyManager: DataPrivacyManager
+  private testingFramework: TestingFramework
+  private storeSubmissionManager: StoreSubmissionManager
 
   constructor() {
     this.initializeSettings()
@@ -70,6 +78,10 @@ class ReplySageBackground {
       this.performanceMonitor = PerformanceMonitor.getInstance()
       this.workerManager = WorkerManager.getInstance()
       this.quantizedModelManager = QuantizedModelManager.getInstance()
+      this.encryptionManager = EncryptionManager.getInstance()
+      this.dataPrivacyManager = DataPrivacyManager.getInstance()
+      this.testingFramework = TestingFramework.getInstance()
+      this.storeSubmissionManager = StoreSubmissionManager.getInstance()
       
       // Initialize AI manager
       await this.aiManager.initialize()
@@ -106,6 +118,18 @@ class ReplySageBackground {
       
       // Initialize quantized model manager
       await this.quantizedModelManager.initialize()
+      
+      // Initialize encryption manager
+      await this.encryptionManager.initialize()
+      
+      // Initialize data privacy manager
+      await this.dataPrivacyManager.initialize()
+      
+      // Initialize testing framework
+      await this.testingFramework.initialize()
+      
+      // Initialize store submission manager
+      await this.storeSubmissionManager.initialize()
       
       // Check asset status
       await this.assetManager.checkAssetStatus()
@@ -241,6 +265,48 @@ class ReplySageBackground {
           break
         case 'DOWNLOAD_QUANTIZED_MODEL':
           await this.handleDownloadQuantizedModel(message.payload, sendResponse)
+          break
+        case 'ENCRYPT_DATA':
+          await this.handleEncryptData(message.payload, sendResponse)
+          break
+        case 'DECRYPT_DATA':
+          await this.handleDecryptData(message.payload, sendResponse)
+          break
+        case 'GET_ENCRYPTION_KEYS':
+          await this.handleGetEncryptionKeys(sendResponse)
+          break
+        case 'ROTATE_ENCRYPTION_KEY':
+          await this.handleRotateEncryptionKey(message.payload, sendResponse)
+          break
+        case 'GET_PRIVACY_SETTINGS':
+          await this.handleGetPrivacySettings(sendResponse)
+          break
+        case 'UPDATE_PRIVACY_SETTINGS':
+          await this.handleUpdatePrivacySettings(message.payload, sendResponse)
+          break
+        case 'EXPORT_USER_DATA':
+          await this.handleExportUserData(message.payload, sendResponse)
+          break
+        case 'DELETE_USER_DATA':
+          await this.handleDeleteUserData(message.payload, sendResponse)
+          break
+        case 'GET_AUDIT_LOG':
+          await this.handleGetAuditLog(sendResponse)
+          break
+        case 'RUN_TESTS':
+          await this.handleRunTests(message.payload, sendResponse)
+          break
+        case 'GET_TEST_SUITES':
+          await this.handleGetTestSuites(sendResponse)
+          break
+        case 'GENERATE_TEST_REPORT':
+          await this.handleGenerateTestReport(message.payload, sendResponse)
+          break
+        case 'VALIDATE_STORE_SUBMISSION':
+          await this.handleValidateStoreSubmission(sendResponse)
+          break
+        case 'GENERATE_STORE_PACKAGE':
+          await this.handleGenerateStorePackage(sendResponse)
           break
         case 'GET_SETTINGS':
           sendResponse({ settings: this.settings })
@@ -841,6 +907,154 @@ class ReplySageBackground {
       sendResponse({ success })
     } catch (error) {
       console.error('ReplySage: Error downloading quantized model:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleEncryptData(request: { data: string; keyId?: string }, sendResponse: (response: any) => void) {
+    try {
+      const encryptedData = await this.encryptionManager.encrypt(request.data, request.keyId)
+      sendResponse({ success: true, encryptedData })
+    } catch (error) {
+      console.error('ReplySage: Error encrypting data:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleDecryptData(request: { encryptedData: any }, sendResponse: (response: any) => void) {
+    try {
+      const decryptedData = await this.encryptionManager.decrypt(request.encryptedData)
+      sendResponse({ success: true, data: decryptedData })
+    } catch (error) {
+      console.error('ReplySage: Error decrypting data:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetEncryptionKeys(sendResponse: (response: any) => void) {
+    try {
+      const keys = this.encryptionManager.getAllKeys()
+      sendResponse({ success: true, keys })
+    } catch (error) {
+      console.error('ReplySage: Error getting encryption keys:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleRotateEncryptionKey(request: { keyId: string }, sendResponse: (response: any) => void) {
+    try {
+      await this.encryptionManager.rotateKey(request.keyId)
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error rotating encryption key:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetPrivacySettings(sendResponse: (response: any) => void) {
+    try {
+      const settings = this.dataPrivacyManager.getSettings()
+      sendResponse({ success: true, settings })
+    } catch (error) {
+      console.error('ReplySage: Error getting privacy settings:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleUpdatePrivacySettings(request: { settings: any }, sendResponse: (response: any) => void) {
+    try {
+      await this.dataPrivacyManager.updateSettings(request.settings)
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error updating privacy settings:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleExportUserData(request: { type: 'full' | 'partial' }, sendResponse: (response: any) => void) {
+    try {
+      const dataExport = await this.dataPrivacyManager.exportData(request.type)
+      sendResponse({ success: true, dataExport })
+    } catch (error) {
+      console.error('ReplySage: Error exporting user data:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleDeleteUserData(request: { type: 'all' | 'analysis' | 'performance' | 'audit' | 'settings' | 'models' | 'embeddings' }, sendResponse: (response: any) => void) {
+    try {
+      const deletionRequest = await this.dataPrivacyManager.deleteData(request.type)
+      sendResponse({ success: true, deletionRequest })
+    } catch (error) {
+      console.error('ReplySage: Error deleting user data:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetAuditLog(sendResponse: (response: any) => void) {
+    try {
+      const auditLog = this.dataPrivacyManager.getAuditLog()
+      sendResponse({ success: true, auditLog })
+    } catch (error) {
+      console.error('ReplySage: Error getting audit log:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleRunTests(request: { suiteId?: string }, sendResponse: (response: any) => void) {
+    try {
+      let reports: TestReport[]
+      
+      if (request.suiteId && request.suiteId !== 'all') {
+        const report = await this.testingFramework.runTestSuite(request.suiteId)
+        reports = [report]
+      } else {
+        reports = await this.testingFramework.runAllTests()
+      }
+      
+      sendResponse({ success: true, reports })
+    } catch (error) {
+      console.error('ReplySage: Error running tests:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetTestSuites(sendResponse: (response: any) => void) {
+    try {
+      const suites = this.testingFramework.getTestSuites()
+      sendResponse({ success: true, suites })
+    } catch (error) {
+      console.error('ReplySage: Error getting test suites:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGenerateTestReport(request: { reports: TestReport[] }, sendResponse: (response: any) => void) {
+    try {
+      const report = this.testingFramework.generateTestReport(request.reports)
+      sendResponse({ success: true, report })
+    } catch (error) {
+      console.error('ReplySage: Error generating test report:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleValidateStoreSubmission(sendResponse: (response: any) => void) {
+    try {
+      const validation = await this.storeSubmissionManager.validateSubmission()
+      sendResponse({ success: true, validation })
+    } catch (error) {
+      console.error('ReplySage: Error validating store submission:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGenerateStorePackage(sendResponse: (response: any) => void) {
+    try {
+      const package = await this.storeSubmissionManager.generateSubmissionPackage()
+      sendResponse({ success: true, package })
+    } catch (error) {
+      console.error('ReplySage: Error generating store package:', error)
       sendResponse({ success: false, error: error.message })
     }
   }

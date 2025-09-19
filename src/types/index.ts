@@ -217,6 +217,137 @@ export interface ModelPerformanceMetrics {
   usageCount: number
 }
 
+export interface EncryptionKey {
+  key: CryptoKey
+  algorithm: string
+  keyId: string
+  createdAt: Date
+  expiresAt?: Date
+}
+
+export interface EncryptedData {
+  data: string
+  iv: string
+  keyId: string
+  algorithm: string
+  timestamp: Date
+}
+
+export interface SecurityAudit {
+  id: string
+  type: 'encryption' | 'decryption' | 'key_generation' | 'key_rotation' | 'data_access'
+  timestamp: Date
+  success: boolean
+  details: {
+    keyId?: string
+    dataSize?: number
+    algorithm?: string
+    error?: string
+  }
+}
+
+export interface PrivacySettings {
+  enableDataCollection: boolean
+  enableAnalytics: boolean
+  enableCrashReporting: boolean
+  enablePerformanceMonitoring: boolean
+  dataRetentionDays: number
+  enableDataExport: boolean
+  enableDataDeletion: boolean
+  enablePIIRedaction: boolean
+  enableEncryption: boolean
+  enableAuditLogging: boolean
+}
+
+export interface DataRetentionPolicy {
+  analysisData: number
+  performanceMetrics: number
+  auditLogs: number
+  userSettings: number
+  cachedModels: number
+  embeddings: number
+}
+
+export interface DataExport {
+  id: string
+  type: 'full' | 'partial'
+  data: any
+  timestamp: Date
+  size: number
+  checksum: string
+}
+
+export interface DataDeletionRequest {
+  id: string
+  type: 'all' | 'analysis' | 'performance' | 'audit' | 'settings' | 'models' | 'embeddings'
+  timestamp: Date
+  status: 'pending' | 'completed' | 'failed'
+  error?: string
+}
+
+export interface PrivacyAudit {
+  id: string
+  action: 'data_access' | 'data_export' | 'data_deletion' | 'settings_change' | 'consent_given' | 'consent_revoked'
+  timestamp: Date
+  details: {
+    dataType?: string
+    dataSize?: number
+    userId?: string
+    ipAddress?: string
+    userAgent?: string
+    consentType?: string
+  }
+}
+
+export interface TestCase {
+  id: string
+  name: string
+  description: string
+  category: 'unit' | 'integration' | 'e2e' | 'performance' | 'security' | 'accessibility'
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  status: 'pending' | 'running' | 'passed' | 'failed' | 'skipped'
+  result?: TestResult
+  setup?: () => Promise<void>
+  teardown?: () => Promise<void>
+  test: () => Promise<TestResult>
+}
+
+export interface TestResult {
+  passed: boolean
+  duration: number
+  error?: string
+  details?: any
+  timestamp: Date
+}
+
+export interface TestSuite {
+  id: string
+  name: string
+  description: string
+  tests: TestCase[]
+  setup?: () => Promise<void>
+  teardown?: () => Promise<void>
+}
+
+export interface TestReport {
+  id: string
+  timestamp: Date
+  totalTests: number
+  passedTests: number
+  failedTests: number
+  skippedTests: number
+  duration: number
+  results: TestResult[]
+  coverage?: CoverageReport
+}
+
+export interface CoverageReport {
+  lines: { total: number; covered: number; percentage: number }
+  functions: { total: number; covered: number; percentage: number }
+  branches: { total: number; covered: number; percentage: number }
+  statements: { total: number; covered: number; percentage: number }
+}
+
 export interface UserSettings {
   enableLocalProcessing: boolean
   enableCloudFallback: boolean
