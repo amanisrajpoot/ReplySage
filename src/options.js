@@ -114,6 +114,10 @@ class ReplySageOptions {
     document.getElementById('manageCloudProviders').addEventListener('click', () => {
       this.openCloudProviderManager()
     })
+
+    document.getElementById('performanceDashboard').addEventListener('click', () => {
+      this.openPerformanceDashboard()
+    })
   }
 
   updateUI() {
@@ -862,6 +866,283 @@ class ReplySageOptions {
         }
       }, 300)
     }, 3000)
+  }
+
+  openPerformanceDashboard() {
+    // Create and show the performance dashboard modal
+    const modal = document.createElement('div')
+    modal.id = 'performance-dashboard-modal'
+    modal.innerHTML = `
+      <div class="performance-dashboard-overlay">
+        <div class="performance-dashboard-modal">
+          <div class="performance-dashboard-header">
+            <h2>Performance Dashboard</h2>
+            <button class="close-button" onclick="this.closest('.performance-dashboard-overlay').remove()">×</button>
+          </div>
+          <div class="performance-dashboard-content">
+            <div id="performance-dashboard-content">
+              <p>Loading performance data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+    
+    // Add styles
+    const style = document.createElement('link')
+    style.rel = 'stylesheet'
+    style.href = 'components/PerformanceDashboard.css'
+    document.head.appendChild(style)
+    
+    document.body.appendChild(modal)
+    
+    // Load performance data
+    this.loadPerformanceDashboardContent()
+  }
+
+  async loadPerformanceDashboardContent() {
+    const content = document.getElementById('performance-dashboard-content')
+    if (!content) return
+
+    try {
+      const [statsResponse, modelsResponse] = await Promise.all([
+        chrome.runtime.sendMessage({ type: 'GET_PERFORMANCE_STATS' }),
+        chrome.runtime.sendMessage({ type: 'GET_QUANTIZED_MODELS' })
+      ])
+      
+      if (statsResponse.success && modelsResponse.success) {
+        this.renderPerformanceDashboard(statsResponse.stats, modelsResponse.models)
+      } else {
+        content.innerHTML = '<p class="error-message">Failed to load performance data</p>'
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to load performance dashboard content:', error)
+      content.innerHTML = '<p class="error-message">Failed to load performance data</p>'
+    }
+  }
+
+  renderPerformanceDashboard(stats, models) {
+    const content = document.getElementById('performance-dashboard-content')
+    if (!content) return
+
+    const formatBytes = (bytes) => {
+      if (bytes === 0) return '0 B'
+      const k = 1024
+      const sizes = ['B', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    }
+
+    const formatLatency = (ms) => {
+      if (ms < 1000) return `${ms.toFixed(0)}ms`
+      return `${(ms / 1000).toFixed(1)}s`
+    }
+
+    let html = `
+      <div class="performance-overview">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <h4>Operations</h4>
+              <span class="metric-icon">⚡</span>
+            </div>
+            <div class="metric-value">${stats.totalOperations}</div>
+            <div class="metric-label">Total Operations</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <h4>Latency</h4>
+              <span class="metric-icon">⏱️</span>
+            </div>
+            <div class="metric-value">${formatLatency(stats.averageLatency)}</div>
+            <div class="metric-label">Average Latency</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <h4>Memory Usage</h4>
+              <span class="metric-icon">💾</span>
+            </div>
+            <div class="metric-value">${formatBytes(stats.memoryUsage.used)}</div>
+            <div class="metric-label">
+              ${(stats.memoryUsage.percentage).toFixed(1)}% of ${formatBytes(stats.memoryUsage.total)}
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <h4>CPU Usage</h4>
+              <span class="metric-icon">🖥️</span>
+            </div>
+            <div class="metric-value">${(stats.cpuUsage.average).toFixed(1)}%</div>
+            <div class="metric-label">Average CPU Usage</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <h4>Network</h4>
+              <span class="metric-icon">🌐</span>
+            </div>
+            <div class="metric-value">${stats.networkUsage.requests}</div>
+            <div class="metric-label">
+              ${formatBytes(stats.networkUsage.bytesTransferred)} transferred
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <h4>Models</h4>
+              <span class="metric-icon">🤖</span>
+            </div>
+            <div class="metric-value">${Object.keys(stats.modelPerformance).length}</div>
+            <div class="metric-label">Active Models</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="models-section">
+        <h3>Available Quantized Models</h3>
+        <div class="models-list">
+    `
+
+    models.forEach(model => {
+      html += `
+        <div class="model-item">
+          <div class="model-info">
+            <h4>${model.name}</h4>
+            <p class="model-description">
+              ${model.quantizationLevel.toUpperCase()} quantization - 
+              ${formatBytes(model.originalSize)} → ${formatBytes(model.quantizedSize)} 
+              (${((1 - model.quantizedSize / model.originalSize) * 100).toFixed(1)}% reduction)
+            </p>
+            <div class="model-details">
+              <span class="accuracy">Accuracy: ${(model.accuracy * 100).toFixed(1)}%</span>
+              <span class="speedup">Speedup: ${model.speedup}x</span>
+            </div>
+          </div>
+          <div class="model-actions">
+            <button class="download-button" data-model="${model.name}">Download</button>
+          </div>
+        </div>
+      `
+    })
+
+    html += `
+        </div>
+      </div>
+
+      <div class="performance-actions">
+        <button id="clear-metrics" class="action-button secondary">Clear Metrics</button>
+        <button id="export-metrics" class="action-button secondary">Export Metrics</button>
+        <button id="restart-workers" class="action-button secondary">Restart Workers</button>
+      </div>
+    `
+
+    content.innerHTML = html
+
+    // Add event listeners
+    document.getElementById('clear-metrics')?.addEventListener('click', () => {
+      this.clearPerformanceMetrics()
+    })
+
+    document.getElementById('export-metrics')?.addEventListener('click', () => {
+      this.exportPerformanceMetrics()
+    })
+
+    document.getElementById('restart-workers')?.addEventListener('click', () => {
+      this.restartWorkers()
+    })
+
+    document.querySelectorAll('.download-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const modelName = e.target.getAttribute('data-model')
+        this.downloadQuantizedModel(modelName)
+      })
+    })
+  }
+
+  async clearPerformanceMetrics() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'CLEAR_PERFORMANCE_METRICS' })
+      
+      if (response.success) {
+        this.showNotification('Performance metrics cleared', 'success')
+        this.loadPerformanceDashboardContent()
+      } else {
+        this.showNotification('Failed to clear metrics', 'error')
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to clear performance metrics:', error)
+      this.showNotification('Failed to clear metrics', 'error')
+    }
+  }
+
+  async exportPerformanceMetrics() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'EXPORT_PERFORMANCE_METRICS' })
+      
+      if (response.success) {
+        const data = {
+          metrics: response.metrics,
+          exportDate: new Date().toISOString(),
+          version: '1.0.0'
+        }
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `replysage-performance-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+
+        this.showNotification('Performance metrics exported successfully!', 'success')
+      } else {
+        this.showNotification('Failed to export metrics', 'error')
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to export performance metrics:', error)
+      this.showNotification('Failed to export metrics', 'error')
+    }
+  }
+
+  async restartWorkers() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'RESTART_WORKERS' })
+      
+      if (response.success) {
+        this.showNotification('Workers restarted successfully', 'success')
+      } else {
+        this.showNotification('Failed to restart workers', 'error')
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to restart workers:', error)
+      this.showNotification('Failed to restart workers', 'error')
+    }
+  }
+
+  async downloadQuantizedModel(modelName) {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'DOWNLOAD_QUANTIZED_MODEL',
+        payload: { modelName }
+      })
+
+      if (response.success) {
+        this.showNotification(`Downloading ${modelName}...`, 'info')
+        // Reload the performance dashboard content
+        setTimeout(() => this.loadPerformanceDashboardContent(), 1000)
+      } else {
+        this.showNotification(`Failed to download ${modelName}`, 'error')
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to download quantized model:', error)
+      this.showNotification(`Failed to download ${modelName}`, 'error')
+    }
   }
 }
 

@@ -1,0 +1,415 @@
+/* Performance Dashboard Styles */
+.performance-dashboard {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.dashboard-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.dashboard-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.time-range-select {
+  padding: 6px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #374151;
+}
+
+.clear-button,
+.export-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clear-button {
+  background: #ef4444;
+  color: white;
+}
+
+.clear-button:hover {
+  background: #dc2626;
+}
+
+.export-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.export-button:hover {
+  background: #2563eb;
+}
+
+.tab-navigation {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-button:hover {
+  background: #f0f0f0;
+  color: #374151;
+}
+
+.tab-button.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background: white;
+}
+
+.tab-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.overview-tab,
+.models-tab,
+.memory-tab,
+.network-tab {
+  padding: 20px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.metric-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.metric-icon {
+  font-size: 16px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.model-card {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.model-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.model-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.model-status {
+  padding: 4px 8px;
+  background: #10b981;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.model-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.model-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.model-metric .metric-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.model-metric .metric-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.memory-chart {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.chart-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.memory-bar {
+  width: 100%;
+  height: 20px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.memory-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+  transition: width 0.3s ease;
+}
+
+.memory-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+
+.network-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.network-stat {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.network-stat h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Performance color classes */
+.text-green-600 {
+  color: #059669;
+}
+
+.text-yellow-600 {
+  color: #d97706;
+}
+
+.text-red-600 {
+  color: #dc2626;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dashboard-controls {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .time-range-select,
+  .clear-button,
+  .export-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .model-metrics {
+    grid-template-columns: 1fr;
+  }
+  
+  .network-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .performance-dashboard {
+    background: #2a2a2a;
+    color: #e5e5e5;
+  }
+  
+  .dashboard-header {
+    background: #1a1a1a;
+    border-bottom-color: #333;
+  }
+  
+  .dashboard-header h3 {
+    color: #e5e5e5;
+  }
+  
+  .time-range-select {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #d0d0d0;
+  }
+  
+  .tab-navigation {
+    background: #1a1a1a;
+    border-bottom-color: #333;
+  }
+  
+  .tab-button {
+    color: #a0a0a0;
+  }
+  
+  .tab-button:hover {
+    background: #2a2a2a;
+    color: #d0d0d0;
+  }
+  
+  .tab-button.active {
+    color: #3b82f6;
+    background: #2a2a2a;
+  }
+  
+  .metric-card,
+  .model-card,
+  .memory-chart,
+  .network-stat {
+    background: #1a1a1a;
+    border-color: #333;
+  }
+  
+  .metric-header h4,
+  .model-header h4,
+  .chart-header h4,
+  .network-stat h4 {
+    color: #e5e5e5;
+  }
+  
+  .metric-value,
+  .stat-value {
+    color: #e5e5e5;
+  }
+  
+  .metric-label,
+  .model-metric .metric-label,
+  .chart-value,
+  .memory-labels {
+    color: #a0a0a0;
+  }
+  
+  .model-metric .metric-value {
+    color: #d0d0d0;
+  }
+  
+  .memory-bar {
+    background: #444;
+  }
+  
+  .model-status {
+    background: #059669;
+  }
+}

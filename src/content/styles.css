@@ -8,6 +8,9 @@
 
 /* Import SemanticSearchPanel styles */
 @import url('./components/SemanticSearchPanel.css');
+
+/* Import ThreadSummaryPanel styles */
+@import url('./components/ThreadSummaryPanel.css');
 .replysage-sidebar {
   position: fixed;
   top: 0;

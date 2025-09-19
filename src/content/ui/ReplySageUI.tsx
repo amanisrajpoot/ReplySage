@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
-import { EmailMessage, AnalysisResult, ActionItem, ExtractedDate, SuggestedReply, SearchQuery, SimilarityResult } from '@/types'
+import { EmailMessage, AnalysisResult, ActionItem, ExtractedDate, SuggestedReply, SearchQuery, SimilarityResult, EmailThread, ThreadSummary, ThreadChunk } from '@/types'
 import { HelpModal } from '@/components/HelpModal'
 import { ActionItemsPanel } from '@/components/ActionItemsPanel'
 import { SuggestedRepliesPanel } from '@/components/SuggestedRepliesPanel'
 import { SemanticSearchPanel } from '@/components/SemanticSearchPanel'
+import { ThreadSummaryPanel } from '@/components/ThreadSummaryPanel'
 
 interface ReplySageUIProps {
   message?: EmailMessage
@@ -20,6 +21,10 @@ const ReplySageUI: React.FC<ReplySageUIProps> = ({ message, analysis }) => {
   const [suggestedReplies, setSuggestedReplies] = useState<SuggestedReply[]>([])
   const [isGeneratingReplies, setIsGeneratingReplies] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
+  const [currentThread, setCurrentThread] = useState<EmailThread | null>(null)
+  const [threadSummary, setThreadSummary] = useState<ThreadSummary | null>(null)
+  const [threadChunks, setThreadChunks] = useState<ThreadChunk[]>([])
+  const [isGeneratingThread, setIsGeneratingThread] = useState(false)
 
   useEffect(() => {
     if (message) {
@@ -39,6 +44,11 @@ const ReplySageUI: React.FC<ReplySageUIProps> = ({ message, analysis }) => {
         const text = `${message.subject} ${message.body}`.trim()
         if (text) {
           handleGenerateEmbedding(message, text, 'analyzed', 'medium')
+        }
+        
+        // Try to fetch thread if message has threadId
+        if (message.threadId) {
+          handleFetchThread(message.threadId)
         }
       }
     }
@@ -217,6 +227,72 @@ const ReplySageUI: React.FC<ReplySageUIProps> = ({ message, analysis }) => {
     }
   }
 
+  const handleFetchThread = async (threadId: string) => {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'FETCH_THREAD',
+        payload: { threadId }
+      })
+      
+      if (response.success && response.thread) {
+        setCurrentThread(response.thread)
+        console.log('ReplySage: Thread fetched successfully')
+      } else {
+        console.error('ReplySage: Failed to fetch thread:', response.error)
+      }
+    } catch (error) {
+      console.error('ReplySage: Thread fetching failed:', error)
+    }
+  }
+
+  const handleGenerateThreadSummary = async (thread: EmailThread): Promise<ThreadSummary> => {
+    setIsGeneratingThread(true)
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'SUMMARIZE_THREAD',
+        payload: { thread }
+      })
+      
+      if (response.success && response.summary) {
+        setThreadSummary(response.summary)
+        console.log('ReplySage: Thread summary generated successfully')
+        return response.summary
+      } else {
+        console.error('ReplySage: Failed to generate thread summary:', response.error)
+        throw new Error(response.error || 'Failed to generate thread summary')
+      }
+    } catch (error) {
+      console.error('ReplySage: Thread summary generation failed:', error)
+      throw error
+    } finally {
+      setIsGeneratingThread(false)
+    }
+  }
+
+  const handleGenerateThreadChunks = async (thread: EmailThread): Promise<ThreadChunk[]> => {
+    setIsGeneratingThread(true)
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'CHUNK_THREAD',
+        payload: { thread, maxChunkSize: 5 }
+      })
+      
+      if (response.success && response.chunks) {
+        setThreadChunks(response.chunks)
+        console.log('ReplySage: Thread chunks generated successfully')
+        return response.chunks
+      } else {
+        console.error('ReplySage: Failed to generate thread chunks:', response.error)
+        throw new Error(response.error || 'Failed to generate thread chunks')
+      }
+    } catch (error) {
+      console.error('ReplySage: Thread chunk generation failed:', error)
+      throw error
+    } finally {
+      setIsGeneratingThread(false)
+    }
+  }
+
   if (!isVisible) return null
 
   return (
@@ -338,6 +414,16 @@ const ReplySageUI: React.FC<ReplySageUIProps> = ({ message, analysis }) => {
           onSearch={handleSemanticSearch}
           onMessageSelect={handleMessageSelect}
           isSearching={isSearching}
+        />
+
+        {/* Thread Summary Panel */}
+        <ThreadSummaryPanel
+          thread={currentThread}
+          summary={threadSummary}
+          chunks={threadChunks}
+          onGenerateSummary={handleGenerateThreadSummary}
+          onGenerateChunks={handleGenerateThreadChunks}
+          isGenerating={isGeneratingThread}
         />
       </div>
 

@@ -111,6 +111,112 @@ export interface EmbeddingSearchResult {
   processingTime: number
 }
 
+export interface ThreadMessage extends EmailMessage {
+  threadPosition: number
+  isReply: boolean
+  replyTo?: string
+  participants: string[]
+  timestamp: Date
+}
+
+export interface EmailThread {
+  id: string
+  subject: string
+  participants: string[]
+  messageCount: number
+  messages: ThreadMessage[]
+  startDate: Date
+  endDate: Date
+  lastActivity: Date
+  isActive: boolean
+  categories: string[]
+  priority: 'low' | 'medium' | 'high'
+  summary?: string
+  keyPoints?: string[]
+  actionItems?: string[]
+  decisions?: string[]
+}
+
+export interface ThreadSummary {
+  threadId: string
+  summary: string
+  keyPoints: string[]
+  actionItems: string[]
+  decisions: string[]
+  participants: string[]
+  timeline: {
+    start: Date
+    end: Date
+    duration: number
+  }
+  sentiment: 'positive' | 'negative' | 'neutral'
+  urgency: 'low' | 'medium' | 'high'
+  confidence: number
+  createdAt: Date
+}
+
+export interface ThreadChunk {
+  id: string
+  threadId: string
+  messages: ThreadMessage[]
+  startIndex: number
+  endIndex: number
+  summary: string
+  keyPoints: string[]
+  sentiment: 'positive' | 'negative' | 'neutral'
+  createdAt: Date
+}
+
+export interface PerformanceMetric {
+  id: string
+  name: string
+  type: 'timing' | 'memory' | 'cpu' | 'network' | 'custom'
+  value: number
+  unit: string
+  timestamp: Date
+  context?: {
+    modelName?: string
+    operation?: string
+    messageId?: string
+    threadId?: string
+  }
+}
+
+export interface PerformanceStats {
+  totalOperations: number
+  averageLatency: number
+  memoryUsage: {
+    used: number
+    total: number
+    percentage: number
+  }
+  cpuUsage: {
+    average: number
+    peak: number
+  }
+  networkUsage: {
+    requests: number
+    bytesTransferred: number
+  }
+  modelPerformance: {
+    [modelName: string]: {
+      averageLatency: number
+      successRate: number
+      memoryUsage: number
+    }
+  }
+}
+
+export interface ModelPerformanceMetrics {
+  modelName: string
+  averageLatency: number
+  memoryUsage: number
+  accuracy: number
+  throughput: number
+  lastUsed: Date
+  usageCount: number
+}
+
 export interface UserSettings {
   enableLocalProcessing: boolean
   enableCloudFallback: boolean

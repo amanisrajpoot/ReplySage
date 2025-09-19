@@ -10,6 +10,10 @@ import { CalendarIntegration } from '@/utils/calendar-integration'
 import { ReplyGenerator } from '@/utils/reply-generator'
 import { ComposeIntegration } from '@/utils/compose-integration'
 import { EmbeddingsManager } from '@/utils/embeddings-manager'
+import { ThreadManager } from '@/utils/thread-manager'
+import { PerformanceMonitor } from '@/utils/performance-monitor'
+import { WorkerManager } from '@/utils/worker-manager'
+import { QuantizedModelManager } from '@/utils/quantized-model-manager'
 
 class ReplySageBackground {
   private settings: UserSettings
@@ -26,6 +30,10 @@ class ReplySageBackground {
   private replyGenerator: ReplyGenerator
   private composeIntegration: ComposeIntegration
   private embeddingsManager: EmbeddingsManager
+  private threadManager: ThreadManager
+  private performanceMonitor: PerformanceMonitor
+  private workerManager: WorkerManager
+  private quantizedModelManager: QuantizedModelManager
 
   constructor() {
     this.initializeSettings()
@@ -58,6 +66,10 @@ class ReplySageBackground {
       this.replyGenerator = ReplyGenerator.getInstance()
       this.composeIntegration = ComposeIntegration.getInstance()
       this.embeddingsManager = EmbeddingsManager.getInstance()
+      this.threadManager = ThreadManager.getInstance()
+      this.performanceMonitor = PerformanceMonitor.getInstance()
+      this.workerManager = WorkerManager.getInstance()
+      this.quantizedModelManager = QuantizedModelManager.getInstance()
       
       // Initialize AI manager
       await this.aiManager.initialize()
@@ -82,6 +94,18 @@ class ReplySageBackground {
       
       // Initialize embeddings manager
       await this.embeddingsManager.initialize()
+      
+      // Initialize thread manager
+      await this.threadManager.initialize()
+      
+      // Initialize performance monitor
+      await this.performanceMonitor.initialize()
+      
+      // Initialize worker manager
+      await this.workerManager.initialize()
+      
+      // Initialize quantized model manager
+      await this.quantizedModelManager.initialize()
       
       // Check asset status
       await this.assetManager.checkAssetStatus()
@@ -184,6 +208,39 @@ class ReplySageBackground {
           break
         case 'CLEAR_EMBEDDINGS':
           await this.handleClearEmbeddings(sendResponse)
+          break
+        case 'FETCH_THREAD':
+          await this.handleFetchThread(message.payload, sendResponse)
+          break
+        case 'SUMMARIZE_THREAD':
+          await this.handleSummarizeThread(message.payload, sendResponse)
+          break
+        case 'CHUNK_THREAD':
+          await this.handleChunkThread(message.payload, sendResponse)
+          break
+        case 'GET_THREAD_STATS':
+          await this.handleGetThreadStats(sendResponse)
+          break
+        case 'GET_PERFORMANCE_STATS':
+          await this.handleGetPerformanceStats(sendResponse)
+          break
+        case 'CLEAR_PERFORMANCE_METRICS':
+          await this.handleClearPerformanceMetrics(sendResponse)
+          break
+        case 'EXPORT_PERFORMANCE_METRICS':
+          await this.handleExportPerformanceMetrics(sendResponse)
+          break
+        case 'GET_WORKER_STATS':
+          await this.handleGetWorkerStats(sendResponse)
+          break
+        case 'RESTART_WORKERS':
+          await this.handleRestartWorkers(sendResponse)
+          break
+        case 'GET_QUANTIZED_MODELS':
+          await this.handleGetQuantizedModels(sendResponse)
+          break
+        case 'DOWNLOAD_QUANTIZED_MODEL':
+          await this.handleDownloadQuantizedModel(message.payload, sendResponse)
           break
         case 'GET_SETTINGS':
           sendResponse({ settings: this.settings })
@@ -674,6 +731,116 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error clearing embeddings:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleFetchThread(request: { threadId: string }, sendResponse: (response: any) => void) {
+    try {
+      const thread = await this.threadManager.fetchThread(request.threadId)
+      sendResponse({ success: true, thread })
+    } catch (error) {
+      console.error('ReplySage: Error fetching thread:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleSummarizeThread(request: { thread: any }, sendResponse: (response: any) => void) {
+    try {
+      const summary = await this.threadManager.summarizeThread(request.thread)
+      sendResponse({ success: true, summary })
+    } catch (error) {
+      console.error('ReplySage: Error summarizing thread:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleChunkThread(request: { thread: any; maxChunkSize?: number }, sendResponse: (response: any) => void) {
+    try {
+      const chunks = await this.threadManager.chunkThread(request.thread, request.maxChunkSize)
+      sendResponse({ success: true, chunks })
+    } catch (error) {
+      console.error('ReplySage: Error chunking thread:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetThreadStats(sendResponse: (response: any) => void) {
+    try {
+      const stats = await this.threadManager.getThreadStats()
+      sendResponse({ success: true, stats })
+    } catch (error) {
+      console.error('ReplySage: Error getting thread stats:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetPerformanceStats(sendResponse: (response: any) => void) {
+    try {
+      const stats = this.performanceMonitor.getStats()
+      sendResponse({ success: true, stats })
+    } catch (error) {
+      console.error('ReplySage: Error getting performance stats:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleClearPerformanceMetrics(sendResponse: (response: any) => void) {
+    try {
+      this.performanceMonitor.clearMetrics()
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error clearing performance metrics:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleExportPerformanceMetrics(sendResponse: (response: any) => void) {
+    try {
+      const metrics = this.performanceMonitor.exportMetrics()
+      sendResponse({ success: true, metrics })
+    } catch (error) {
+      console.error('ReplySage: Error exporting performance metrics:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetWorkerStats(sendResponse: (response: any) => void) {
+    try {
+      const stats = this.workerManager.getStats()
+      sendResponse({ success: true, stats })
+    } catch (error) {
+      console.error('ReplySage: Error getting worker stats:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleRestartWorkers(sendResponse: (response: any) => void) {
+    try {
+      await this.workerManager.restart()
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error restarting workers:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetQuantizedModels(sendResponse: (response: any) => void) {
+    try {
+      const models = this.quantizedModelManager.getAvailableModels()
+      sendResponse({ success: true, models })
+    } catch (error) {
+      console.error('ReplySage: Error getting quantized models:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleDownloadQuantizedModel(request: { modelName: string }, sendResponse: (response: any) => void) {
+    try {
+      const success = await this.quantizedModelManager.downloadModel(request.modelName)
+      sendResponse({ success })
+    } catch (error) {
+      console.error('ReplySage: Error downloading quantized model:', error)
       sendResponse({ success: false, error: error.message })
     }
   }
