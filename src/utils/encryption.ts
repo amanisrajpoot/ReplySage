@@ -21,7 +21,7 @@ export class EncryptionHelper {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: salt as BufferSource,
         iterations: 100000,
         hash: 'SHA-256'
       },
@@ -58,7 +58,7 @@ export class EncryptionHelper {
       const encryptedData = await crypto.subtle.encrypt(
         {
           name: this.ALGORITHM,
-          iv: iv
+          iv: iv as BufferSource
         },
         key,
         new TextEncoder().encode(data)
@@ -96,7 +96,7 @@ export class EncryptionHelper {
       const decryptedData = await crypto.subtle.decrypt(
         {
           name: this.ALGORITHM,
-          iv: iv
+          iv: iv as BufferSource
         },
         key,
         encrypted

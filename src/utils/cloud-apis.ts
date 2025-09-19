@@ -1,4 +1,4 @@
-import { EmailMessage, AnalysisResult, ActionItem, SuggestedReply, GrammarIssue } from '@/types'
+import { EmailMessage, AnalysisResult } from '@/types'
 import { EncryptionHelper } from './encryption'
 
 export interface CloudProvider {
@@ -36,10 +36,10 @@ export interface CloudAnalysisResponse {
 export class CloudAPIManager {
   private static instance: CloudAPIManager
   private providers: Map<string, CloudProvider> = new Map()
-  private encryptionHelper: EncryptionHelper
+  // private encryptionHelper: EncryptionHelper
 
   private constructor() {
-    this.encryptionHelper = new EncryptionHelper()
+    // this.encryptionHelper = new EncryptionHelper()
   }
 
   static getInstance(): CloudAPIManager {
@@ -52,7 +52,7 @@ export class CloudAPIManager {
   async addProvider(provider: CloudProvider): Promise<void> {
     try {
       // Encrypt the API key before storing
-      const encryptedKey = await this.encryptionHelper.encryptApiKey(provider.apiKey, 'device-key')
+      const encryptedKey = await EncryptionHelper.encryptApiKey(provider.apiKey, 'device-key')
       provider.apiKey = encryptedKey
       
       this.providers.set(provider.name, provider)
@@ -74,7 +74,7 @@ export class CloudAPIManager {
 
     try {
       // Decrypt the API key
-      const decryptedKey = await this.encryptionHelper.decryptApiKey(provider.apiKey, 'device-key')
+      const decryptedKey = await EncryptionHelper.decryptApiKey(provider.apiKey, 'device-key')
       return { ...provider, apiKey: decryptedKey }
     } catch (error) {
       console.error('ReplySage: Failed to decrypt API key:', error)
@@ -111,7 +111,7 @@ export class CloudAPIManager {
       console.error('ReplySage: Cloud analysis failed:', error)
       return {
         success: false,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
@@ -157,7 +157,7 @@ export class CloudAPIManager {
       console.error('ReplySage: OpenAI analysis failed:', error)
       return {
         success: false,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
@@ -203,7 +203,7 @@ export class CloudAPIManager {
       console.error('ReplySage: Anthropic analysis failed:', error)
       return {
         success: false,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
@@ -249,7 +249,7 @@ export class CloudAPIManager {
       console.error('ReplySage: Azure analysis failed:', error)
       return {
         success: false,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
@@ -475,13 +475,13 @@ Please analyze this email for: ${analysisType} and provide a JSON response with 
     return inputCost + outputCost
   }
 
-  private calculateAzureCost(usage: any, model: string): number {
+  private calculateAzureCost(usage: any, _model: string): number {
     // Azure OpenAI pricing varies by deployment
     // This is a simplified calculation
     return (usage.total_tokens / 1000) * 0.002
   }
 
-  async testProvider(provider: CloudProvider): Promise<boolean> {
+  async testProvider(_provider: CloudProvider): Promise<boolean> {
     try {
       const testRequest: CloudAnalysisRequest = {
         message: {

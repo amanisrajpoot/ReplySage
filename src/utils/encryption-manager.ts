@@ -137,7 +137,7 @@ export class EncryptionManager {
         type: 'key_generation',
         timestamp: new Date(),
         success: false,
-        details: { keyId, error: error.message }
+        details: { keyId, error: (error as Error).message }
       })
       throw error
     }
@@ -156,7 +156,7 @@ export class EncryptionManager {
       return await window.crypto.subtle.deriveKey(
         {
           name: this.config.keyDerivation.algorithm,
-          salt: salt,
+          salt: salt as BufferSource,
           iterations: this.config.keyDerivation.iterations,
           hash: 'SHA-256'
         },
@@ -198,7 +198,7 @@ export class EncryptionManager {
 
       const result: EncryptedData = {
         data: this.arrayBufferToBase64(encryptedData),
-        iv: this.arrayBufferToBase64(iv),
+        iv: this.arrayBufferToBase64(iv.buffer),
         keyId,
         algorithm: this.config.algorithm,
         timestamp: new Date()
@@ -219,7 +219,7 @@ export class EncryptionManager {
         type: 'encryption',
         timestamp: new Date(),
         success: false,
-        details: { keyId, error: error.message }
+        details: { keyId, error: (error as Error).message }
       })
       throw error
     }
@@ -268,7 +268,7 @@ export class EncryptionManager {
         type: 'decryption',
         timestamp: new Date(),
         success: false,
-        details: { keyId: encryptedData.keyId, error: error.message }
+        details: { keyId: encryptedData.keyId, error: (error as Error).message }
       })
       throw error
     }
@@ -280,7 +280,7 @@ export class EncryptionManager {
       const salt = window.crypto.getRandomValues(new Uint8Array(this.config.keyDerivation.saltLength))
 
       // Derive key from password
-      const key = await this.deriveKeyFromPassword(password, salt)
+      const key = await this.deriveKeyFromPassword(password, new Uint8Array(salt))
 
       // Generate random IV
       const iv = window.crypto.getRandomValues(new Uint8Array(this.config.ivLength))
@@ -301,8 +301,8 @@ export class EncryptionManager {
       combined.set(new Uint8Array(encryptedData), salt.length)
 
       const result: EncryptedData = {
-        data: this.arrayBufferToBase64(combined),
-        iv: this.arrayBufferToBase64(iv),
+        data: this.arrayBufferToBase64(combined.buffer),
+        iv: this.arrayBufferToBase64(iv.buffer),
         keyId: 'password-derived',
         algorithm: this.config.algorithm,
         timestamp: new Date()
@@ -323,7 +323,7 @@ export class EncryptionManager {
         type: 'encryption',
         timestamp: new Date(),
         success: false,
-        details: { keyId: 'password-derived', error: error.message }
+        details: { keyId: 'password-derived', error: (error as Error).message }
       })
       throw error
     }
@@ -337,7 +337,7 @@ export class EncryptionManager {
       const data = combined.slice(this.config.keyDerivation.saltLength)
 
       // Derive key from password
-      const key = await this.deriveKeyFromPassword(password, salt)
+      const key = await this.deriveKeyFromPassword(password, new Uint8Array(salt))
 
       // Convert IV
       const iv = this.base64ToArrayBuffer(encryptedData.iv)
@@ -369,7 +369,7 @@ export class EncryptionManager {
         type: 'decryption',
         timestamp: new Date(),
         success: false,
-        details: { keyId: 'password-derived', error: error.message }
+        details: { keyId: 'password-derived', error: (error as Error).message }
       })
       throw error
     }
@@ -404,7 +404,7 @@ export class EncryptionManager {
         type: 'key_rotation',
         timestamp: new Date(),
         success: false,
-        details: { keyId, error: error.message }
+        details: { keyId, error: (error as Error).message }
       })
       throw error
     }
@@ -540,7 +540,7 @@ export class EncryptionManager {
         type: 'data_access',
         timestamp: new Date(),
         success: false,
-        details: { keyId, error: error.message }
+        details: { keyId, error: (error as Error).message }
       })
       throw error
     }

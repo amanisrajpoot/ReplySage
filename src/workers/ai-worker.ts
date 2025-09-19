@@ -15,8 +15,8 @@ interface WorkerResponse {
 }
 
 class AIWorker {
-  private isInitialized = false
-  private models: Map<string, any> = new Map()
+  // private _isInitialized = false
+  // private _models: Map<string, any> = new Map()
 
   constructor() {
     this.setupMessageHandler()
@@ -37,7 +37,7 @@ class AIWorker {
         self.postMessage({
           id: event.data.id,
           type: 'error',
-          error: error.message
+          error: (error as Error).message
         })
       }
     }
@@ -61,7 +61,7 @@ class AIWorker {
   }
 
   private async analyzeMessage(payload: any): Promise<any> {
-    const { message, analysisType } = payload
+    const { message, analysisType: _analysisType } = payload
     
     // Simulate AI analysis
     await this.delay(1000 + Math.random() * 2000) // 1-3 seconds
@@ -115,7 +115,7 @@ class AIWorker {
   }
 
   private async generateEmbedding(payload: any): Promise<any> {
-    const { text } = payload
+    const { text: _text } = payload
     
     // Simulate embedding generation
     await this.delay(200 + Math.random() * 500) // 0.2-0.7 seconds
@@ -131,7 +131,7 @@ class AIWorker {
   }
 
   private async generateReply(payload: any): Promise<any> {
-    const { originalMessage, replyType, tone, length } = payload
+    const { originalMessage, replyType: _replyType, tone, length } = payload
     
     // Simulate reply generation
     await this.delay(800 + Math.random() * 1200) // 0.8-2 seconds

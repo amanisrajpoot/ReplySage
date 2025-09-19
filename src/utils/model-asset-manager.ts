@@ -1,19 +1,22 @@
-import { ModelConfig } from './ai-models'
+// import { ModelConfig } from './ai-models'
 
 export interface ModelAsset {
+  id: string
   name: string
-  url: string
+  type: 'model' | 'tokenizer' | 'config'
   size: number
-  downloaded: boolean
-  downloadProgress: number
-  lastUpdated: Date
-  checksum?: string
+  url: string
+  checksum: string
+  status: 'pending' | 'downloading' | 'downloaded' | 'error'
+  progress: number
+  lastAccessed?: number
+  createdAt: Date
 }
 
 export class ModelAssetManager {
   private static instance: ModelAssetManager
   private assets: Map<string, ModelAsset> = new Map()
-  private downloadQueue: string[] = []
+  // private _downloadQueue: string[] = []
   private isDownloading = false
 
   private constructor() {
@@ -32,36 +35,48 @@ export class ModelAssetManager {
     
     const modelAssets: ModelAsset[] = [
       {
+        id: 'summarizer',
         name: 'summarizer',
+        type: 'model',
         url: `${baseUrl}/distilbart-cnn-6-6/resolve/main/onnx/model_quantized.onnx`,
         size: 60 * 1024 * 1024, // 60MB
-        downloaded: false,
-        downloadProgress: 0,
-        lastUpdated: new Date()
+        checksum: 'abc123',
+        status: 'pending',
+        progress: 0,
+        createdAt: new Date()
       },
       {
+        id: 'text-generator',
         name: 'text-generator',
+        type: 'model',
         url: `${baseUrl}/distilgpt2/resolve/main/onnx/model_quantized.onnx`,
         size: 40 * 1024 * 1024, // 40MB
-        downloaded: false,
-        downloadProgress: 0,
-        lastUpdated: new Date()
+        checksum: 'def456',
+        status: 'pending',
+        progress: 0,
+        createdAt: new Date()
       },
       {
+        id: 'embeddings',
         name: 'embeddings',
+        type: 'model',
         url: `${baseUrl}/all-MiniLM-L6-v2/resolve/main/onnx/model_quantized.onnx`,
         size: 90 * 1024 * 1024, // 90MB
-        downloaded: false,
-        downloadProgress: 0,
-        lastUpdated: new Date()
+        checksum: 'ghi789',
+        status: 'pending',
+        progress: 0,
+        createdAt: new Date()
       },
       {
+        id: 'sentiment',
         name: 'sentiment',
+        type: 'model',
         url: `${baseUrl}/distilbert-base-uncased-finetuned-sst-2-english/resolve/main/onnx/model_quantized.onnx`,
         size: 30 * 1024 * 1024, // 30MB
-        downloaded: false,
-        downloadProgress: 0,
-        lastUpdated: new Date()
+        checksum: 'jkl012',
+        status: 'pending',
+        progress: 0,
+        createdAt: new Date()
       }
     ]
 
@@ -75,9 +90,9 @@ export class ModelAssetManager {
     for (const [name, asset] of this.assets) {
       try {
         const isDownloaded = await this.isAssetDownloaded(name)
-        asset.downloaded = isDownloaded
+        asset.status = isDownloaded ? 'downloaded' : 'pending'
         if (isDownloaded) {
-          asset.downloadProgress = 100
+          asset.progress = 100
         }
       } catch (error) {
         console.error(`ReplySage: Failed to check status for ${name}:`, error)
@@ -115,7 +130,7 @@ export class ModelAssetManager {
       throw new Error(`Asset ${name} not found`)
     }
 
-    if (asset.downloaded) {
+    if (asset.status === 'downloaded') {
       return
     }
 
@@ -147,7 +162,7 @@ export class ModelAssetManager {
         loaded += value.length
         
         const progress = Math.round((loaded / total) * 100)
-        asset.downloadProgress = progress
+        asset.progress = progress
         
         if (onProgress) {
           onProgress(progress)
@@ -167,14 +182,14 @@ export class ModelAssetManager {
       // Store the model in IndexedDB
       await this.storeAsset(name, result)
       
-      asset.downloaded = true
-      asset.downloadProgress = 100
-      asset.lastUpdated = new Date()
+      asset.status = 'downloaded'
+      asset.progress = 100
+      asset.lastAccessed = Date.now()
       
       console.log(`ReplySage: Successfully downloaded ${name}`)
     } catch (error) {
       console.error(`ReplySage: Failed to download ${name}:`, error)
-      asset.downloadProgress = 0
+      asset.progress = 0
       throw error
     }
   }
@@ -187,7 +202,7 @@ export class ModelAssetManager {
     this.isDownloading = true
 
     try {
-      const assetsToDownload = Array.from(this.assets.values()).filter(asset => !asset.downloaded)
+      const assetsToDownload = Array.from(this.assets.values()).filter(asset => asset.status !== 'downloaded')
       
       for (const asset of assetsToDownload) {
         try {
@@ -254,8 +269,8 @@ export class ModelAssetManager {
       
       const asset = this.assets.get(name)
       if (asset) {
-        asset.downloaded = false
-        asset.downloadProgress = 0
+        asset.status = 'pending'
+        asset.progress = 0
       }
     } catch (error) {
       console.error(`ReplySage: Failed to delete asset ${name}:`, error)
@@ -272,8 +287,8 @@ export class ModelAssetManager {
       
       // Reset all assets
       for (const asset of this.assets.values()) {
-        asset.downloaded = false
-        asset.downloadProgress = 0
+        asset.status = 'pending'
+        asset.progress = 0
       }
     } catch (error) {
       console.error('ReplySage: Failed to clear all assets:', error)

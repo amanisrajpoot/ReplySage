@@ -432,7 +432,7 @@ const ReplySageUI: React.FC<ReplySageUIProps> = ({ message, analysis }) => {
   )
 }
 
-export class ReplySageUI {
+export class ReplySageUIManager {
   private container: HTMLElement | null = null
   private root: any = null
   private currentMessage: EmailMessage | null = null
@@ -461,8 +461,8 @@ export class ReplySageUI {
 
     this.root.render(
       <ReplySageUI 
-        message={this.currentMessage} 
-        analysis={this.currentAnalysis} 
+        message={this.currentMessage || undefined}
+        analysis={this.currentAnalysis || undefined}
       />
     )
   }

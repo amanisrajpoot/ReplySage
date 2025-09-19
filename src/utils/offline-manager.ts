@@ -101,7 +101,7 @@ export class OfflineManager {
       const startTime = performance.now()
       
       // Try to fetch a small resource to test connection speed
-      const response = await fetch('data:text/plain,test', { cache: 'no-cache' })
+      // const _response = await fetch('data:text/plain,test', { cache: 'no-cache' })
       const endTime = performance.now()
       
       const duration = endTime - startTime

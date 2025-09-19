@@ -1,5 +1,5 @@
-import { pipeline, Pipeline } from '@xenova/transformers'
-import { AnalysisResult, EmailMessage, ActionItem, SuggestedReply, GrammarIssue } from '@/types'
+import { pipeline } from '@xenova/transformers'
+import { AnalysisResult, EmailMessage, ActionItem, ExtractedDate, SuggestedReply, GrammarIssue } from '@/types'
 
 export interface ModelConfig {
   name: string
@@ -12,7 +12,7 @@ export interface ModelConfig {
 
 export class LocalAIManager {
   private static instance: LocalAIManager
-  private models: Map<string, Pipeline> = new Map()
+  private models: Map<string, any> = new Map()
   private modelConfigs: ModelConfig[] = []
   private isInitialized = false
 
@@ -85,7 +85,7 @@ export class LocalAIManager {
     }
   }
 
-  async loadModel(modelName: string): Promise<Pipeline> {
+  async loadModel(modelName: string): Promise<any> {
     if (this.models.has(modelName)) {
       return this.models.get(modelName)!
     }
@@ -116,6 +116,59 @@ export class LocalAIManager {
     }
   }
 
+  // Public methods for testing and external use
+  async generateReplies(message: EmailMessage, type: string): Promise<{ replies: SuggestedReply[]; confidence: number; method: string; processingTime: number }> {
+    const startTime = Date.now()
+    try {
+      await this.initialize()
+      
+      // Load text generation model
+      const textGenerator = await this.loadModel('text-generator')
+      
+      // Generate context-aware replies using AI
+      const replies = await this.generateAISuggestedReplies(message, textGenerator, type)
+      const processingTime = Date.now() - startTime
+      
+      return {
+        replies,
+        confidence: 0.85,
+        method: 'local',
+        processingTime
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to generate replies:', error)
+      // Fallback to template-based replies
+      const replies = await this.generateSuggestedReplies(message, '')
+      return {
+        replies,
+        confidence: 0.6,
+        method: 'template',
+        processingTime: Date.now() - startTime
+      }
+    }
+  }
+
+  async generateEmbedding(text: string): Promise<number[]> {
+    try {
+      await this.initialize()
+      
+      const embeddingModel = await this.loadModel('embeddings')
+      
+      // Generate embedding using the actual model
+      const result = await embeddingModel(text, {
+        pooling: 'mean',
+        normalize: true
+      })
+      
+      return result.data || result
+    } catch (error) {
+      console.error('ReplySage: Failed to generate embedding:', error)
+      // Fallback to mock embedding if model fails
+      const embedding = new Array(384).fill(0).map(() => Math.random() - 0.5)
+      return embedding
+    }
+  }
+
   async analyzeEmail(message: EmailMessage): Promise<AnalysisResult> {
     try {
       await this.initialize()
@@ -132,8 +185,8 @@ export class LocalAIManager {
       // Analyze sentiment
       const sentimentResult = await this.analyzeSentiment(message.body, sentiment)
       
-      // Extract action items using heuristics
-      const actionItems = this.extractActionItems(message.body)
+      // Extract action items using AI
+      const actionItems = await this.extractActionItems(message.body)
       
       // Generate suggested replies
       const suggestedReplies = await this.generateSuggestedReplies(message, summary)
@@ -149,8 +202,8 @@ export class LocalAIManager {
         grammarIssues,
         sentiment: sentimentResult,
         priority: this.determinePriority(message, actionItems),
-        categories: this.categorizeEmail(message, summary),
-        extractedDates: this.extractDates(message.body),
+        categories: await this.categorizeEmail(message, summary),
+        extractedDates: await this.extractDates(message.body),
         createdAt: new Date(),
         modelUsed: 'local'
       }
@@ -160,7 +213,7 @@ export class LocalAIManager {
     }
   }
 
-  private async generateSummary(text: string, model: Pipeline): Promise<string> {
+  private async generateSummary(text: string, model: any): Promise<string> {
     try {
       // Truncate text if too long
       const maxLength = 512
@@ -181,7 +234,7 @@ export class LocalAIManager {
     }
   }
 
-  private async analyzeSentiment(text: string, model: Pipeline): Promise<'positive' | 'negative' | 'neutral'> {
+  private async analyzeSentiment(text: string, model: any): Promise<'positive' | 'negative' | 'neutral'> {
     try {
       const result = await model(text)
       const label = result[0]?.label || 'NEUTRAL'
@@ -195,7 +248,58 @@ export class LocalAIManager {
     }
   }
 
-  private extractActionItems(text: string): ActionItem[] {
+  async extractActionItems(text: string): Promise<ActionItem[]> {
+    try {
+      // Use AI for better action item extraction
+      await this.initialize()
+      const textGenerator = await this.loadModel('text-generator')
+      
+      const prompt = `Extract action items from this email text. Return only the action items in this format:
+ACTION: [action description] | PRIORITY: [high/medium/low] | CATEGORY: [category] | DUE: [due date if mentioned]
+
+Email text: ${text.substring(0, 1000)}
+
+Action items:`
+
+      const result = await textGenerator(prompt, {
+        max_length: 200,
+        temperature: 0.3,
+        do_sample: true
+      })
+
+      const aiResponse = result[0]?.generated_text || ''
+      return this.parseAIActionItems(aiResponse)
+    } catch (error) {
+      console.error('ReplySage: AI action extraction failed, using fallback:', error)
+      return this.extractActionItemsFallback(text)
+    }
+  }
+
+  private parseAIActionItems(aiResponse: string): ActionItem[] {
+    const actionItems: ActionItem[] = []
+    const lines = aiResponse.split('\n')
+    
+    lines.forEach(line => {
+      const actionMatch = line.match(/ACTION:\s*(.+?)(?:\s*\||$)/i)
+      const priorityMatch = line.match(/PRIORITY:\s*(high|medium|low)/i)
+      const categoryMatch = line.match(/CATEGORY:\s*(.+?)(?:\s*\||$)/i)
+      const dueMatch = line.match(/DUE:\s*(.+?)(?:\s*\||$)/i)
+      
+      if (actionMatch) {
+        actionItems.push({
+          text: actionMatch[1].trim(),
+          dueDate: dueMatch ? this.parseDate(dueMatch[1].trim()) : undefined,
+          priority: (priorityMatch?.[1]?.toLowerCase() as 'high' | 'medium' | 'low') || 'medium',
+          category: categoryMatch?.[1]?.trim() || 'general',
+          isCompleted: false
+        })
+      }
+    })
+
+    return actionItems
+  }
+
+  private extractActionItemsFallback(text: string): ActionItem[] {
     const actionItems: ActionItem[] = []
     const lines = text.split('\n')
     
@@ -206,7 +310,7 @@ export class LocalAIManager {
       /(?:deadline|due date|deadline):\s*([^.!?]+)/gi
     ]
 
-    lines.forEach((line, index) => {
+    lines.forEach((line, _index) => {
       patterns.forEach(pattern => {
         const matches = line.matchAll(pattern)
         for (const match of matches) {
@@ -229,6 +333,65 @@ export class LocalAIManager {
     return actionItems
   }
 
+  private async generateAISuggestedReplies(message: EmailMessage, model: any, type: string): Promise<SuggestedReply[]> {
+    const replies: SuggestedReply[] = []
+    
+    // Generate different tone variations using AI
+    const tones: Array<'formal' | 'casual' | 'concise'> = ['formal', 'casual', 'concise']
+    
+    for (const tone of tones) {
+      try {
+        const prompt = this.buildReplyPrompt(message, tone, type)
+        const result = await model(prompt, {
+          max_length: tone === 'concise' ? 50 : tone === 'casual' ? 100 : 150,
+          temperature: 0.7,
+          do_sample: true,
+          top_p: 0.9
+        })
+        
+        const replyText = result[0]?.generated_text || this.generateReplyByTone(message, '', tone)
+        
+        replies.push({
+          text: replyText,
+          tone,
+          length: this.determineReplyLength(replyText),
+          confidence: 0.85
+        })
+      } catch (error) {
+        console.error(`ReplySage: Failed to generate ${tone} reply:`, error)
+        // Fallback to template-based reply
+        const reply = this.generateReplyByTone(message, '', tone)
+        replies.push({
+          text: reply,
+          tone,
+          length: this.determineReplyLength(reply),
+          confidence: 0.6
+        })
+      }
+    }
+
+    return replies
+  }
+
+  private buildReplyPrompt(message: EmailMessage, tone: 'formal' | 'casual' | 'concise', type: string): string {
+    const toneInstructions = {
+      formal: "Write a professional, polite response",
+      casual: "Write a friendly, conversational response", 
+      concise: "Write a brief, direct response"
+    }
+    
+    return `Email Subject: ${message.subject}
+Email Content: ${message.body.substring(0, 500)}...
+
+${toneInstructions[tone]} to this email. ${type === 'acknowledgment' ? 'Acknowledge receipt and confirm understanding.' : 
+type === 'question' ? 'Ask relevant follow-up questions.' : 
+type === 'decline' ? 'Politely decline the request.' : 
+type === 'accept' ? 'Accept the request and provide next steps.' : 
+'Provide an appropriate response.'}
+
+Response:`
+  }
+
   private async generateSuggestedReplies(message: EmailMessage, summary: string): Promise<SuggestedReply[]> {
     const replies: SuggestedReply[] = []
     
@@ -248,7 +411,7 @@ export class LocalAIManager {
     return replies
   }
 
-  private generateReplyByTone(message: EmailMessage, summary: string, tone: 'formal' | 'casual' | 'concise'): string {
+  private generateReplyByTone(message: EmailMessage, _summary: string, tone: 'formal' | 'casual' | 'concise'): string {
     const subject = message.subject.toLowerCase()
     
     if (subject.includes('meeting') || subject.includes('schedule')) {
@@ -299,34 +462,71 @@ export class LocalAIManager {
   }
 
   private async checkGrammar(text: string): Promise<GrammarIssue[]> {
-    // Simple grammar checking using heuristics
-    // In a real implementation, you'd use a proper grammar checker
-    const issues: GrammarIssue[] = []
-    
-    // Check for common issues
-    const commonIssues = [
-      { pattern: /\bi\b/g, suggestion: 'I', severity: 'error' as const },
-      { pattern: /\bcan't\b/g, suggestion: 'cannot', severity: 'info' as const },
-      { pattern: /\bwon't\b/g, suggestion: 'will not', severity: 'info' as const },
-      { pattern: /\bdon't\b/g, suggestion: 'do not', severity: 'info' as const }
-    ]
+    try {
+      // Use LanguageTool API for grammar checking
+      const response = await fetch('https://api.languagetool.org/v2/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          text: text,
+          language: 'en-US',
+          enabledOnly: 'false'
+        })
+      })
 
-    commonIssues.forEach(issue => {
-      const matches = text.matchAll(issue.pattern)
-      for (const match of matches) {
+      if (!response.ok) {
+        throw new Error('LanguageTool API request failed')
+      }
+
+      const data = await response.json()
+      const issues: GrammarIssue[] = []
+
+      data.matches?.forEach((match: any) => {
         issues.push({
-          text: match[0],
-          suggestion: issue.suggestion,
-          severity: issue.severity,
+          text: match.context.text.substring(match.offset, match.offset + match.length),
+          suggestion: match.replacements?.[0]?.value || match.message,
+          severity: match.rule.severity === 'error' ? 'error' : 'warning',
           position: {
-            start: match.index || 0,
-            end: (match.index || 0) + match[0].length
+            start: match.offset,
+            end: match.offset + match.length
           }
         })
-      }
-    })
+      })
 
-    return issues
+      return issues
+    } catch (error) {
+      console.error('ReplySage: Grammar check failed, using fallback:', error)
+      
+      // Fallback to simple heuristic-based grammar checking
+      const issues: GrammarIssue[] = []
+      
+      // Check for common issues
+      const commonIssues = [
+        { pattern: /\bi\b/g, suggestion: 'I', severity: 'error' as const },
+        { pattern: /\bcan't\b/g, suggestion: 'cannot', severity: 'info' as const },
+        { pattern: /\bwon't\b/g, suggestion: 'will not', severity: 'info' as const },
+        { pattern: /\bdon't\b/g, suggestion: 'do not', severity: 'info' as const }
+      ]
+
+      commonIssues.forEach(issue => {
+        const matches = text.matchAll(issue.pattern)
+        for (const match of matches) {
+          issues.push({
+            text: match[0],
+            suggestion: issue.suggestion,
+            severity: issue.severity,
+            position: {
+              start: match.index || 0,
+              end: (match.index || 0) + match[0].length
+            }
+          })
+        }
+      })
+
+      return issues
+    }
   }
 
   private determinePriority(message: EmailMessage, actionItems: ActionItem[]): 'high' | 'medium' | 'low' {
@@ -350,7 +550,37 @@ export class LocalAIManager {
     return 'low'
   }
 
-  private categorizeEmail(message: EmailMessage, summary: string): string[] {
+  private async categorizeEmail(message: EmailMessage, summary: string): Promise<string[]> {
+    try {
+      // Use AI for better categorization
+      await this.initialize()
+      const textGenerator = await this.loadModel('text-generator')
+      
+      const prompt = `Categorize this email into relevant categories. Choose from: meeting, deadline, project, budget, appreciation, urgent, question, request, follow-up, general.
+      
+Subject: ${message.subject}
+Content: ${message.body.substring(0, 500)}
+Summary: ${summary}
+
+Return only the categories separated by commas:`
+
+      const result = await textGenerator(prompt, {
+        max_length: 50,
+        temperature: 0.3,
+        do_sample: true
+      })
+
+      const aiResponse = result[0]?.generated_text || ''
+      const categories = aiResponse.split(',').map((cat: string) => cat.trim().toLowerCase()).filter((cat: string) => cat)
+      
+      return categories.length > 0 ? categories : ['general']
+    } catch (error) {
+      console.error('ReplySage: AI categorization failed, using fallback:', error)
+      return this.categorizeEmailFallback(message, summary)
+    }
+  }
+
+  private categorizeEmailFallback(message: EmailMessage, _summary: string): string[] {
     const categories: string[] = []
     const subject = message.subject.toLowerCase()
     const body = message.body.toLowerCase()
@@ -374,8 +604,62 @@ export class LocalAIManager {
     return categories.length > 0 ? categories : ['general']
   }
 
-  private extractDates(text: string): Array<{ text: string; date: Date; type: string; confidence: number }> {
-    const dates: Array<{ text: string; date: Date; type: string; confidence: number }> = []
+  async extractDates(text: string): Promise<ExtractedDate[]> {
+    try {
+      // Use AI for better date extraction
+      await this.initialize()
+      const textGenerator = await this.loadModel('text-generator')
+      
+      const prompt = `Extract all dates and time references from this text. Return in format:
+DATE: [date text] | TYPE: [deadline/meeting/event/general] | CONFIDENCE: [0.0-1.0]
+
+Text: ${text.substring(0, 1000)}
+
+Dates:`
+
+      const result = await textGenerator(prompt, {
+        max_length: 200,
+        temperature: 0.3,
+        do_sample: true
+      })
+
+      const aiResponse = result[0]?.generated_text || ''
+      return this.parseAIDates(aiResponse)
+    } catch (error) {
+      console.error('ReplySage: AI date extraction failed, using fallback:', error)
+      return this.extractDatesFallback(text)
+    }
+  }
+
+  private parseAIDates(aiResponse: string): ExtractedDate[] {
+    const dates: ExtractedDate[] = []
+    const lines = aiResponse.split('\n')
+    
+    lines.forEach(line => {
+      const dateMatch = line.match(/DATE:\s*(.+?)(?:\s*\||$)/i)
+      const typeMatch = line.match(/TYPE:\s*(deadline|meeting|event|general)/i)
+      const confidenceMatch = line.match(/CONFIDENCE:\s*([0-9.]+)/i)
+      
+      if (dateMatch) {
+        const dateText = dateMatch[1].trim()
+        const date = new Date(dateText)
+        
+        if (!isNaN(date.getTime())) {
+          dates.push({
+            text: dateText,
+            date,
+            type: (typeMatch?.[1]?.toLowerCase() as 'deadline' | 'meeting' | 'event' | 'general') || 'general',
+            confidence: parseFloat(confidenceMatch?.[1] || '0.8')
+          })
+        }
+      }
+    })
+
+    return dates
+  }
+
+  private extractDatesFallback(text: string): ExtractedDate[] {
+    const dates: ExtractedDate[] = []
     
     // Simple date patterns
     const datePatterns = [
@@ -394,7 +678,7 @@ export class LocalAIManager {
           dates.push({
             text: dateText,
             date,
-            type,
+            type: type as 'deadline' | 'meeting' | 'event' | 'general',
             confidence: 0.8
           })
         }

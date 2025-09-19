@@ -19,29 +19,29 @@ import { DataPrivacyManager } from '@/utils/data-privacy-manager'
 import { TestingFramework } from '@/utils/testing-framework'
 import { StoreSubmissionManager } from '@/utils/store-submission'
 
-class ReplySageBackground {
-  private settings: UserSettings
+export class ReplySageBackground {
+  private settings!: UserSettings
   private jobQueue: ProcessingJob[] = []
   private isProcessing = false
-  private aiManager: LocalAIManager
-  private assetManager: ModelAssetManager
-  private offlineManager: OfflineManager
-  private fallbackManager: FallbackManager
-  private cloudManager: CloudAPIManager
-  private piiManager: PIIRedactionManager
-  private actionExtractor: ActionExtractor
-  private calendarIntegration: CalendarIntegration
-  private replyGenerator: ReplyGenerator
-  private composeIntegration: ComposeIntegration
-  private embeddingsManager: EmbeddingsManager
-  private threadManager: ThreadManager
-  private performanceMonitor: PerformanceMonitor
-  private workerManager: WorkerManager
-  private quantizedModelManager: QuantizedModelManager
-  private encryptionManager: EncryptionManager
-  private dataPrivacyManager: DataPrivacyManager
-  private testingFramework: TestingFramework
-  private storeSubmissionManager: StoreSubmissionManager
+  private aiManager!: LocalAIManager
+  private assetManager!: ModelAssetManager
+  private offlineManager!: OfflineManager
+  private fallbackManager!: FallbackManager
+  private cloudManager!: CloudAPIManager
+  private piiManager!: PIIRedactionManager
+  private actionExtractor!: ActionExtractor
+  private calendarIntegration!: CalendarIntegration
+  private replyGenerator!: ReplyGenerator
+  private composeIntegration!: ComposeIntegration
+  private embeddingsManager!: EmbeddingsManager
+  private threadManager!: ThreadManager
+  private performanceMonitor!: PerformanceMonitor
+  private workerManager!: WorkerManager
+  private quantizedModelManager!: QuantizedModelManager
+  private encryptionManager!: EncryptionManager
+  private dataPrivacyManager!: DataPrivacyManager
+  private testingFramework!: TestingFramework
+  private storeSubmissionManager!: StoreSubmissionManager
 
   constructor() {
     this.initializeSettings()
@@ -173,7 +173,7 @@ class ReplySageBackground {
     })
   }
 
-  private async handleMessage(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
+  private async handleMessage(message: any, _sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
     try {
       switch (message.type) {
         case 'ANALYZE_MESSAGE':
@@ -325,7 +325,7 @@ class ReplySageBackground {
       }
     } catch (error) {
       console.error('ReplySage: Error handling message:', error)
-      sendResponse({ error: error.message })
+      sendResponse({ error: (error as Error).message })
     }
   }
 
@@ -457,7 +457,7 @@ class ReplySageBackground {
       sendResponse({ success: true, result: analysis })
     } catch (error) {
       console.error('ReplySage: Error analyzing message:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -468,7 +468,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error updating settings:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -484,7 +484,7 @@ class ReplySageBackground {
       sendResponse({ success: true, cleared: analysisKeys.length })
     } catch (error) {
       console.error('ReplySage: Error clearing cache:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -497,7 +497,7 @@ class ReplySageBackground {
       sendResponse({ success: true, analyses })
     } catch (error) {
       console.error('ReplySage: Error getting analysis history:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -507,7 +507,7 @@ class ReplySageBackground {
       sendResponse({ success: true, models: modelStatus })
     } catch (error) {
       console.error('ReplySage: Error getting model status:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -541,7 +541,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error downloading models:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -557,7 +557,7 @@ class ReplySageBackground {
       })
     } catch (error) {
       console.error('ReplySage: Error getting asset status:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -567,7 +567,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error adding cloud provider:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -577,7 +577,7 @@ class ReplySageBackground {
       sendResponse({ success, error: success ? null : 'Connection test failed' })
     } catch (error) {
       console.error('ReplySage: Error testing cloud provider:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -587,7 +587,7 @@ class ReplySageBackground {
       sendResponse({ success: true, providers })
     } catch (error) {
       console.error('ReplySage: Error getting cloud providers:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -597,7 +597,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error removing cloud provider:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -617,12 +617,12 @@ class ReplySageBackground {
 
       // Redact PII if enabled
       let redactedMessage = request.message
-      let redactionResult = null
+      // let _redactionResult = null
       
       if (this.settings.enablePIIRedaction) {
         const redaction = this.piiManager.redactEmail(request.message)
         redactedMessage = redaction.redactedMessage
-        redactionResult = redaction.redactionResult
+        // _redactionResult = redaction.redactionResult
       }
 
       // Prepare cloud analysis request
@@ -651,7 +651,7 @@ class ReplySageBackground {
       sendResponse(response)
     } catch (error) {
       console.error('ReplySage: Error analyzing with cloud:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -661,7 +661,7 @@ class ReplySageBackground {
       sendResponse({ success: true, result })
     } catch (error) {
       console.error('ReplySage: Error extracting actions:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -680,7 +680,7 @@ class ReplySageBackground {
       sendResponse({ success: true, result })
     } catch (error) {
       console.error('ReplySage: Error creating calendar event:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -696,7 +696,7 @@ class ReplySageBackground {
       })
     } catch (error) {
       console.error('ReplySage: Error getting calendar providers:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -713,21 +713,21 @@ class ReplySageBackground {
       sendResponse({ success: true, result })
     } catch (error) {
       console.error('ReplySage: Error generating replies:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
   private async handleInsertReply(request: { reply: string; method: string }, sendResponse: (response: any) => void) {
     try {
       const result = await this.composeIntegration.insertReply(
-        { text: request.reply, tone: 'professional', length: 'medium', confidence: 1.0 },
+        { text: request.reply, tone: 'formal', length: 'medium', confidence: 1.0 },
         { method: request.method as any }
       )
       
       sendResponse({ success: true, result })
     } catch (error) {
       console.error('ReplySage: Error inserting reply:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -743,7 +743,7 @@ class ReplySageBackground {
       })
     } catch (error) {
       console.error('ReplySage: Error getting compose options:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -759,7 +759,7 @@ class ReplySageBackground {
       sendResponse({ success: true, embeddingId })
     } catch (error) {
       console.error('ReplySage: Error generating embedding:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -777,7 +777,7 @@ class ReplySageBackground {
       sendResponse({ success: true, result })
     } catch (error) {
       console.error('ReplySage: Error searching similar:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -787,7 +787,7 @@ class ReplySageBackground {
       sendResponse({ success: true, stats })
     } catch (error) {
       console.error('ReplySage: Error getting embedding stats:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -797,7 +797,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error clearing embeddings:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -807,7 +807,7 @@ class ReplySageBackground {
       sendResponse({ success: true, thread })
     } catch (error) {
       console.error('ReplySage: Error fetching thread:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -817,7 +817,7 @@ class ReplySageBackground {
       sendResponse({ success: true, summary })
     } catch (error) {
       console.error('ReplySage: Error summarizing thread:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -827,7 +827,7 @@ class ReplySageBackground {
       sendResponse({ success: true, chunks })
     } catch (error) {
       console.error('ReplySage: Error chunking thread:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -837,7 +837,7 @@ class ReplySageBackground {
       sendResponse({ success: true, stats })
     } catch (error) {
       console.error('ReplySage: Error getting thread stats:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -847,7 +847,7 @@ class ReplySageBackground {
       sendResponse({ success: true, stats })
     } catch (error) {
       console.error('ReplySage: Error getting performance stats:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -857,7 +857,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error clearing performance metrics:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -867,7 +867,7 @@ class ReplySageBackground {
       sendResponse({ success: true, metrics })
     } catch (error) {
       console.error('ReplySage: Error exporting performance metrics:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -877,7 +877,7 @@ class ReplySageBackground {
       sendResponse({ success: true, stats })
     } catch (error) {
       console.error('ReplySage: Error getting worker stats:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -887,7 +887,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error restarting workers:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -897,7 +897,7 @@ class ReplySageBackground {
       sendResponse({ success: true, models })
     } catch (error) {
       console.error('ReplySage: Error getting quantized models:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -907,7 +907,7 @@ class ReplySageBackground {
       sendResponse({ success })
     } catch (error) {
       console.error('ReplySage: Error downloading quantized model:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -917,7 +917,7 @@ class ReplySageBackground {
       sendResponse({ success: true, encryptedData })
     } catch (error) {
       console.error('ReplySage: Error encrypting data:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -927,7 +927,7 @@ class ReplySageBackground {
       sendResponse({ success: true, data: decryptedData })
     } catch (error) {
       console.error('ReplySage: Error decrypting data:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -937,7 +937,7 @@ class ReplySageBackground {
       sendResponse({ success: true, keys })
     } catch (error) {
       console.error('ReplySage: Error getting encryption keys:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -947,7 +947,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error rotating encryption key:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -957,7 +957,7 @@ class ReplySageBackground {
       sendResponse({ success: true, settings })
     } catch (error) {
       console.error('ReplySage: Error getting privacy settings:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -967,7 +967,7 @@ class ReplySageBackground {
       sendResponse({ success: true })
     } catch (error) {
       console.error('ReplySage: Error updating privacy settings:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -977,7 +977,7 @@ class ReplySageBackground {
       sendResponse({ success: true, dataExport })
     } catch (error) {
       console.error('ReplySage: Error exporting user data:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -987,7 +987,7 @@ class ReplySageBackground {
       sendResponse({ success: true, deletionRequest })
     } catch (error) {
       console.error('ReplySage: Error deleting user data:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -997,13 +997,13 @@ class ReplySageBackground {
       sendResponse({ success: true, auditLog })
     } catch (error) {
       console.error('ReplySage: Error getting audit log:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
   private async handleRunTests(request: { suiteId?: string }, sendResponse: (response: any) => void) {
     try {
-      let reports: TestReport[]
+      let reports: any[]
       
       if (request.suiteId && request.suiteId !== 'all') {
         const report = await this.testingFramework.runTestSuite(request.suiteId)
@@ -1015,7 +1015,7 @@ class ReplySageBackground {
       sendResponse({ success: true, reports })
     } catch (error) {
       console.error('ReplySage: Error running tests:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -1025,17 +1025,17 @@ class ReplySageBackground {
       sendResponse({ success: true, suites })
     } catch (error) {
       console.error('ReplySage: Error getting test suites:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
-  private async handleGenerateTestReport(request: { reports: TestReport[] }, sendResponse: (response: any) => void) {
+  private async handleGenerateTestReport(request: { reports: any[] }, sendResponse: (response: any) => void) {
     try {
       const report = this.testingFramework.generateTestReport(request.reports)
       sendResponse({ success: true, report })
     } catch (error) {
       console.error('ReplySage: Error generating test report:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -1045,17 +1045,17 @@ class ReplySageBackground {
       sendResponse({ success: true, validation })
     } catch (error) {
       console.error('ReplySage: Error validating store submission:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
   private async handleGenerateStorePackage(sendResponse: (response: any) => void) {
     try {
-      const package = await this.storeSubmissionManager.generateSubmissionPackage()
-      sendResponse({ success: true, package })
+      const packageData = await this.storeSubmissionManager.generateSubmissionPackage()
+      sendResponse({ success: true, package: packageData })
     } catch (error) {
       console.error('ReplySage: Error generating store package:', error)
-      sendResponse({ success: false, error: error.message })
+      sendResponse({ success: false, error: (error as Error).message })
     }
   }
 
@@ -1075,7 +1075,7 @@ class ReplySageBackground {
         job.completedAt = new Date()
       } catch (error) {
         job.status = 'failed'
-        job.error = error.message
+        job.error = (error as Error).message
         console.error('ReplySage: Job failed:', error)
       }
     }
@@ -1083,7 +1083,7 @@ class ReplySageBackground {
     this.isProcessing = false
   }
 
-  private async processJob(job: ProcessingJob) {
+  private async processJob(_job: ProcessingJob) {
     // This is where actual AI processing would happen
     // For now, we'll just simulate processing time
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -1215,7 +1215,7 @@ class ReplySageBackground {
 }
 
 // Initialize the background script
-const replySageBackground = new ReplySageBackground()
+// const replySageBackground = new ReplySageBackground()
 
 // Keep service worker alive
 chrome.runtime.onStartup.addListener(() => {

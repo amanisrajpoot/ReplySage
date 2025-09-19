@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Extension files
+*.crx
+*.pem
+*.zip
+
+# Model files
+models/
+*.onnx
+*.bin
+*.safetensors
+
+# Generated files
+*.d.ts

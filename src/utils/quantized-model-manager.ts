@@ -1,4 +1,4 @@
-import { ModelAssetManager } from './model-asset-manager'
+// import { ModelAssetManager } from './model-asset-manager'
 
 export interface QuantizedModel {
   name: string
@@ -32,13 +32,13 @@ export interface ModelPerformanceMetrics {
 
 export class QuantizedModelManager {
   private static instance: QuantizedModelManager
-  private assetManager: ModelAssetManager
+  // private assetManager: ModelAssetManager
   private quantizedModels: Map<string, QuantizedModel> = new Map()
   private performanceMetrics: Map<string, ModelPerformanceMetrics> = new Map()
   private isInitialized = false
 
   private constructor() {
-    this.assetManager = ModelAssetManager.getInstance()
+    // this.assetManager = ModelAssetManager.getInstance()
     this.initializeQuantizedModels()
   }
 
@@ -113,7 +113,7 @@ export class QuantizedModelManager {
     if (this.isInitialized) return
 
     try {
-      await this.assetManager.initialize()
+      // await this.assetManager.initialize()
       this.isInitialized = true
       console.log('ReplySage: Quantized model manager initialized')
     } catch (error) {
@@ -350,19 +350,19 @@ export class QuantizedModelManager {
     const recommendations: { [key: string]: string } = {}
     
     // Get performance stats
-    const stats = this.getPerformanceStats()
+    // const _stats = this.getPerformanceStats()
     
     // Recommend models based on performance
     const useCases = ['summarization', 'generation', 'embeddings', 'sentiment']
     
     for (const useCase of useCases) {
-      const models = this.getModelRecommendations(useCase)
+      const models = this.getModelRecommendations(useCase as 'embeddings' | 'summarization' | 'sentiment' | 'generation')
       
       if (models.length > 0) {
         // Choose model based on accuracy and speed balance
         const bestModel = models.reduce((best, current) => {
-          const bestScore = best.accuracy * (1000 / best.averageLatency)
-          const currentScore = current.accuracy * (1000 / current.averageLatency)
+          const bestScore = best.accuracy * best.speedup
+          const currentScore = current.accuracy * current.speedup
           return currentScore > bestScore ? current : best
         })
         

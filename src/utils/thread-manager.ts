@@ -178,12 +178,16 @@ export class ThreadManager {
         id: `msg_${Date.now()}_${index}`,
         subject: subject,
         from: from,
+        to: [], // Will be extracted from email headers
         body: body,
         timestamp: parsedTimestamp,
         threadPosition: index,
         isReply: isReply,
         participants: participants,
-        threadId: 'unknown' // Will be set by the thread
+        threadId: 'unknown', // Will be set by the thread
+        attachments: [], // Will be extracted from email
+        isRead: true, // Default to read
+        isImportant: false // Default to not important
       }
 
       return message
@@ -338,7 +342,7 @@ export class ThreadManager {
     return 'low'
   }
 
-  private async fetchThreadFromAPI(threadId: string): Promise<EmailThread | null> {
+  private async fetchThreadFromAPI(_threadId: string): Promise<EmailThread | null> {
     // This would integrate with Gmail API or other email APIs
     // For now, return null as we don't have API access
     return null
@@ -386,7 +390,7 @@ export class ThreadManager {
     }
   }
 
-  private async generateLocalThreadSummary(thread: EmailThread): Promise<ThreadSummary | null> {
+  private async generateLocalThreadSummary(_thread: EmailThread): Promise<ThreadSummary | null> {
     try {
       // This would integrate with the local AI manager
       // For now, return null to use fallback
@@ -397,7 +401,7 @@ export class ThreadManager {
     }
   }
 
-  private async generateCloudThreadSummary(thread: EmailThread): Promise<ThreadSummary | null> {
+  private async generateCloudThreadSummary(_thread: EmailThread): Promise<ThreadSummary | null> {
     try {
       // This would integrate with the cloud API manager
       // For now, return null to use fallback

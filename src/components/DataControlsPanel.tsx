@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 interface DataControlsPanelProps {
   onExportData: (type: 'full' | 'partial') => Promise<void>
@@ -50,7 +50,7 @@ export const DataControlsPanel: React.FC<DataControlsPanelProps> = ({
   }
 
   const getDeleteTypeDescription = (type: string): string => {
-    const descriptions = {
+    const descriptions: { [key: string]: string } = {
       all: 'All data including settings, analysis history, performance metrics, and cached models',
       analysis: 'Analysis history and cached analysis results',
       performance: 'Performance metrics and monitoring data',
@@ -63,7 +63,7 @@ export const DataControlsPanel: React.FC<DataControlsPanelProps> = ({
   }
 
   const getDeleteTypeIcon = (type: string): string => {
-    const icons = {
+    const icons: { [key: string]: string } = {
       all: '🗑️',
       analysis: '📊',
       performance: '⚡',

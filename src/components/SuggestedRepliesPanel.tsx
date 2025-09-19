@@ -10,7 +10,7 @@ interface SuggestedRepliesPanelProps {
 }
 
 export const SuggestedRepliesPanel: React.FC<SuggestedRepliesPanelProps> = ({
-  originalMessage,
+  originalMessage: _originalMessage,
   suggestedReplies,
   onReplySelect,
   onGenerateReplies,
@@ -92,17 +92,17 @@ export const SuggestedRepliesPanel: React.FC<SuggestedRepliesPanelProps> = ({
     }
   }
 
-  const getReplyTypeIcon = (type: string): string => {
-    switch (type) {
-      case 'acknowledgment': return '✅'
-      case 'question': return '❓'
-      case 'decline': return '❌'
-      case 'accept': return '👍'
-      case 'follow_up': return '🔄'
-      case 'custom': return '✏️'
-      default: return '📝'
-    }
-  }
+  // const _getReplyTypeIcon = (type: string): string => {
+  //   switch (type) {
+  //     case 'acknowledgment': return '✅'
+  //     case 'question': return '❓'
+  //     case 'decline': return '❌'
+  //     case 'accept': return '👍'
+  //     case 'follow_up': return '🔄'
+  //     case 'custom': return '✏️'
+  //     default: return '📝'
+  //   }
+  // }
 
   const getComposeMethodIcon = (method: string): string => {
     switch (method) {

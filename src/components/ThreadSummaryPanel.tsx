@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { EmailThread, ThreadSummary, ThreadChunk } from '@/types'
 
 interface ThreadSummaryPanelProps {

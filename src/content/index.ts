@@ -1,9 +1,9 @@
 import { GmailExtractor } from '@/utils/dom-extractor'
 import { EmailMessage } from '@/types'
-import { ReplySageUI } from './ui/ReplySageUI'
+import { ReplySageUIManager } from './ui/ReplySageUI'
 
 class ReplySageContentScript {
-  private ui: ReplySageUI | null = null
+  private ui: ReplySageUIManager | null = null
   private currentMessage: EmailMessage | null = null
   private isInitialized = false
 
@@ -44,7 +44,7 @@ class ReplySageContentScript {
 
   private initializeUI() {
     try {
-      this.ui = new ReplySageUI()
+      this.ui = new ReplySageUIManager()
       this.ui.render()
       console.log('ReplySage: UI initialized')
     } catch (error) {
@@ -145,7 +145,7 @@ const replySage = new ReplySageContentScript()
 ;(window as any).replySage = replySage
 
 // Listen for messages from background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'ANALYZE_CURRENT_MESSAGE') {
     replySage.analyzeCurrentMessage()
     sendResponse({ success: true })

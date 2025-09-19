@@ -10,6 +10,12 @@ export interface PerformanceMetric {
     operation?: string
     messageId?: string
     threadId?: string
+    total?: number
+    limit?: number
+    url?: string
+    success?: boolean
+    size?: number
+    memoryUsage?: number
   }
 }
 

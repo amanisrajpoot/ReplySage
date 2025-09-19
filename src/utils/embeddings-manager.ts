@@ -80,12 +80,12 @@ export class EmbeddingsManager {
   }
 
   private async initializeDatabase(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION)
       
       request.onerror = () => {
         console.error('ReplySage: Failed to open embeddings database')
-        reject(new Error('Failed to open database'))
+        _reject(new Error('Failed to open database'))
       }
       
       request.onsuccess = () => {
@@ -314,9 +314,9 @@ export class EmbeddingsManager {
   }
 
   private async getAllEmbeddings(): Promise<EmbeddingVector[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       if (!this.db) {
-        reject(new Error('Database not initialized'))
+        _reject(new Error('Database not initialized'))
         return
       }
 
@@ -329,13 +329,13 @@ export class EmbeddingsManager {
       }
 
       request.onerror = () => {
-        reject(new Error('Failed to retrieve embeddings'))
+        _reject(new Error('Failed to retrieve embeddings'))
       }
     })
   }
 
   private async getCachedSearch(query: string): Promise<EmbeddingSearchResult | null> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       if (!this.db) {
         resolve(null)
         return
@@ -361,7 +361,7 @@ export class EmbeddingsManager {
   }
 
   private async cacheSearchResult(query: string, result: EmbeddingSearchResult): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       if (!this.db) {
         resolve()
         return

@@ -130,7 +130,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -164,7 +164,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -198,7 +198,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -254,7 +254,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -288,7 +288,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -341,7 +341,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -378,7 +378,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -439,7 +439,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -485,7 +485,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -544,7 +544,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -584,7 +584,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -640,7 +640,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -683,7 +683,7 @@ export class TestingFramework {
               passed: false,
               duration: 0,
               timestamp: new Date(),
-              error: error.message
+              error: (error as Error).message
             }
           }
         }
@@ -726,7 +726,7 @@ export class TestingFramework {
           passed: false,
           duration: 0,
           timestamp: new Date(),
-          error: error.message
+          error: (error as Error).message
         }
         test.result = result
         test.status = 'failed'

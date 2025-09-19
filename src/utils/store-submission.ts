@@ -254,7 +254,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
 
       checklist.testing = successRate >= 90
     } catch (error) {
-      errors.push('Failed to run tests: ' + error.message)
+      errors.push('Failed to run tests: ' + (error as Error).message)
     }
 
     // Check privacy policy
@@ -266,7 +266,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
         errors.push('Privacy policy is not accessible')
       }
     } catch (error) {
-      errors.push('Privacy policy validation failed: ' + error.message)
+      errors.push('Privacy policy validation failed: ' + (error as Error).message)
     }
 
     // Check manifest permissions
@@ -274,7 +274,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
       const manifest = await chrome.runtime.getManifest()
       const requiredPermissions = ['activeTab', 'storage', 'scripting']
       const hasAllPermissions = requiredPermissions.every(perm => 
-        manifest.permissions?.includes(perm)
+        manifest.permissions?.includes(perm as any)
       )
 
       if (!hasAllPermissions) {
@@ -283,7 +283,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
         checklist.permissionsReview = true
       }
     } catch (error) {
-      errors.push('Manifest validation failed: ' + error.message)
+      errors.push('Manifest validation failed: ' + (error as Error).message)
     }
 
     // Check for required files
@@ -338,7 +338,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
         checklist.support = true
       }
     } catch (error) {
-      warnings.push('Support URL validation failed: ' + error.message)
+      warnings.push('Support URL validation failed: ' + (error as Error).message)
     }
 
     // Check documentation
@@ -350,7 +350,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
         warnings.push('Documentation is not accessible')
       }
     } catch (error) {
-      warnings.push('Documentation validation failed: ' + error.message)
+      warnings.push('Documentation validation failed: ' + (error as Error).message)
     }
 
     // Check security audit
@@ -366,7 +366,7 @@ Our complete privacy policy is available at privacy@replysage.com. We are commit
         warnings.push('No encryption keys found - security audit incomplete')
       }
     } catch (error) {
-      warnings.push('Security audit failed: ' + error.message)
+      warnings.push('Security audit failed: ' + (error as Error).message)
     }
 
     // Check code review

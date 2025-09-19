@@ -56,12 +56,12 @@ export class ComposeIntegration {
       return {
         success: false,
         method: options.method,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
 
-  private async pasteReply(reply: SuggestedReply, options: ComposeOptions): Promise<ComposeIntegrationResult> {
+  private async pasteReply(reply: SuggestedReply, _options: ComposeOptions): Promise<ComposeIntegrationResult> {
     try {
       // Try to find the compose area
       const composeArea = this.findComposeArea()
@@ -105,11 +105,11 @@ export class ComposeIntegration {
         method: 'paste'
       }
     } catch (error) {
-      throw new Error(`Paste failed: ${error.message}`)
+      throw new Error(`Paste failed: ${(error as Error).message}`)
     }
   }
 
-  private async replaceContent(reply: SuggestedReply, options: ComposeOptions): Promise<ComposeIntegrationResult> {
+  private async replaceContent(reply: SuggestedReply, _options: ComposeOptions): Promise<ComposeIntegrationResult> {
     try {
       const composeArea = this.findComposeArea()
       if (!composeArea) {
@@ -137,7 +137,7 @@ export class ComposeIntegration {
         method: 'replace'
       }
     } catch (error) {
-      throw new Error(`Replace failed: ${error.message}`)
+      throw new Error(`Replace failed: ${(error as Error).message}`)
     }
   }
 
@@ -185,11 +185,11 @@ export class ComposeIntegration {
         method: 'insert'
       }
     } catch (error) {
-      throw new Error(`Insert failed: ${error.message}`)
+      throw new Error(`Insert failed: ${(error as Error).message}`)
     }
   }
 
-  private async openNewCompose(reply: SuggestedReply, options: ComposeOptions): Promise<ComposeIntegrationResult> {
+  private async openNewCompose(reply: SuggestedReply, _options: ComposeOptions): Promise<ComposeIntegrationResult> {
     try {
       // Create a new compose window/tab
       const composeUrl = this.getComposeUrl()
@@ -220,7 +220,7 @@ export class ComposeIntegration {
         method: 'new_tab'
       }
     } catch (error) {
-      throw new Error(`New tab failed: ${error.message}`)
+      throw new Error(`New tab failed: ${(error as Error).message}`)
     }
   }
 

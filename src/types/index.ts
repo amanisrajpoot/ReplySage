@@ -51,6 +51,13 @@ export interface SuggestedReply {
   confidence: number
 }
 
+export interface ReplyGenerationResult {
+  replies: SuggestedReply[]
+  confidence: number
+  method: 'local' | 'cloud' | 'template'
+  processingTime: number
+}
+
 export interface GrammarIssue {
   text: string
   suggestion: string
@@ -179,6 +186,11 @@ export interface PerformanceMetric {
     operation?: string
     messageId?: string
     threadId?: string
+    total?: number
+    url?: string
+    success?: boolean
+    size?: number
+    memoryUsage?: number
   }
 }
 
@@ -215,6 +227,33 @@ export interface ModelPerformanceMetrics {
   throughput: number
   lastUsed: Date
   usageCount: number
+}
+
+export interface QuantizedModel {
+  id: string
+  name: string
+  originalModel: string
+  quantizationType: 'int8' | 'int16' | 'fp16' | 'fp32'
+  size: number
+  accuracy: number
+  averageLatency: number
+  memoryUsage: number
+  downloadUrl: string
+  checksum: string
+  createdAt: Date
+}
+
+export interface ModelAsset {
+  id: string
+  name: string
+  type: 'model' | 'tokenizer' | 'config'
+  size: number
+  url: string
+  checksum: string
+  status: 'pending' | 'downloading' | 'downloaded' | 'error'
+  progress: number
+  lastAccessed?: number
+  createdAt: Date
 }
 
 export interface EncryptionKey {
@@ -389,3 +428,31 @@ export interface CacheEntry {
   expiresAt: Date
   encrypted: boolean
 }
+
+export type ManifestPermissions = 
+  | 'activeTab'
+  | 'storage'
+  | 'scripting'
+  | 'tabs'
+  | 'background'
+  | 'contextMenus'
+  | 'cookies'
+  | 'declarativeNetRequest'
+  | 'declarativeNetRequestFeedback'
+  | 'downloads'
+  | 'history'
+  | 'identity'
+  | 'management'
+  | 'notifications'
+  | 'offscreen'
+  | 'privacy'
+  | 'proxy'
+  | 'scripting'
+  | 'sidePanel'
+  | 'storage'
+  | 'tabGroups'
+  | 'tabs'
+  | 'topSites'
+  | 'webNavigation'
+  | 'webRequest'
+  | 'webRequestBlocking'

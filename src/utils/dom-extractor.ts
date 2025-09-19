@@ -31,10 +31,10 @@ export class GmailExtractor {
         cc: this.extractCc(),
         bcc: this.extractBcc(),
         body,
-        htmlBody: this.extractHtmlBody(),
+        htmlBody: this.extractHtmlBody() || undefined,
         attachments: this.extractAttachments(),
         timestamp: this.extractTimestamp(),
-        threadId: this.extractThreadId(),
+        threadId: this.extractThreadId() || undefined,
         isRead: this.isMessageRead(),
         isImportant: this.isMessageImportant(),
         labels: this.extractLabels()

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { EmailMessage } from '@/types'
 
 interface CloudConsentModalProps {
@@ -16,7 +16,7 @@ export const CloudConsentModal: React.FC<CloudConsentModalProps> = ({
   isOpen,
   onAccept,
   onReject,
-  message,
+  message: _message,
   redactedMessage,
   redactionSummary,
   provider,

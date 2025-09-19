@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { TestReport, TestSuite } from '@/types'
+import React, { useState } from 'react'
+import { TestReport } from '@/types'
 
 interface BetaTestingPanelProps {
   onRunTests: () => Promise<TestReport[]>

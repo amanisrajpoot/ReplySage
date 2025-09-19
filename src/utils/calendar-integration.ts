@@ -74,7 +74,7 @@ export class CalendarIntegration {
       console.error('ReplySage: Calendar event creation failed:', error)
       return {
         success: false,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
@@ -115,7 +115,7 @@ export class CalendarIntegration {
       console.error('ReplySage: Calendar event creation failed:', error)
       return {
         success: false,
-        error: error.message
+        error: (error as Error).message
       }
     }
   }
@@ -194,7 +194,7 @@ export class CalendarIntegration {
         }
       }
     } catch (error) {
-      throw new Error(`Google Calendar integration failed: ${error.message}`)
+      throw new Error(`Google Calendar integration failed: ${(error as Error).message}`)
     }
   }
 
@@ -231,7 +231,7 @@ export class CalendarIntegration {
         }
       }
     } catch (error) {
-      throw new Error(`Outlook Calendar integration failed: ${error.message}`)
+      throw new Error(`Outlook Calendar integration failed: ${(error as Error).message}`)
     }
   }
 
@@ -266,7 +266,7 @@ export class CalendarIntegration {
         }
       }
     } catch (error) {
-      throw new Error(`Apple Calendar integration failed: ${error.message}`)
+      throw new Error(`Apple Calendar integration failed: ${(error as Error).message}`)
     }
   }
 
@@ -297,7 +297,7 @@ export class CalendarIntegration {
         eventId: 'ics-download'
       }
     } catch (error) {
-      throw new Error(`ICS generation failed: ${error.message}`)
+      throw new Error(`ICS generation failed: ${(error as Error).message}`)
     }
   }
 

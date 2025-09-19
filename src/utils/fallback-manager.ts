@@ -1,4 +1,4 @@
-import { EmailMessage, AnalysisResult, ActionItem, SuggestedReply, GrammarIssue } from '@/types'
+import { EmailMessage, AnalysisResult, ActionItem, ExtractedDate, SuggestedReply, GrammarIssue } from '@/types'
 
 export interface FallbackOptions {
   enableHeuristics: boolean
@@ -132,7 +132,7 @@ export class FallbackManager {
       { regex: /(?:action|task|todo|follow.?up|next steps?):\s*(.+?)(?:\.|!|\?)/gi, hasDeadline: false }
     ]
 
-    lines.forEach((line, lineIndex) => {
+    lines.forEach((line, _lineIndex) => {
       patterns.forEach(({ regex, hasDeadline }) => {
         const matches = line.matchAll(regex)
         for (const match of matches) {
@@ -275,7 +275,7 @@ export class FallbackManager {
     return issues
   }
 
-  private async checkGrammarWithLanguageTool(text: string): Promise<GrammarIssue[]> {
+  private async checkGrammarWithLanguageTool(_text: string): Promise<GrammarIssue[]> {
     // This would integrate with LanguageTool API
     // For now, return empty array as we don't have API access
     return []
@@ -339,8 +339,8 @@ export class FallbackManager {
     return categories.length > 0 ? categories : ['general']
   }
 
-  private extractDatesWithHeuristics(message: EmailMessage): Array<{ text: string; date: Date; type: string; confidence: number }> {
-    const dates: Array<{ text: string; date: Date; type: string; confidence: number }> = []
+  private extractDatesWithHeuristics(message: EmailMessage): ExtractedDate[] {
+    const dates: ExtractedDate[] = []
     const text = message.body
     
     // Simple date patterns
@@ -360,7 +360,7 @@ export class FallbackManager {
           dates.push({
             text: dateText,
             date,
-            type,
+            type: type as 'deadline' | 'meeting' | 'event' | 'general',
             confidence: 0.7
           })
         }

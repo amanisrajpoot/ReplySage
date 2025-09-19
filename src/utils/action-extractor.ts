@@ -1,4 +1,5 @@
 import { EmailMessage, ActionItem, ExtractedDate } from '@/types'
+import { LocalAIManager } from './ai-models'
 
 export interface ActionExtractionResult {
   actionItems: ActionItem[]
@@ -258,30 +259,27 @@ export class ActionExtractor {
   }
 
   private async extractWithLLM(message: EmailMessage): Promise<ActionExtractionResult> {
-    // This would integrate with the cloud API manager
-    // For now, return a placeholder that would be enhanced with LLM
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'ANALYZE_WITH_CLOUD',
-        payload: {
-          message,
-          analysisType: 'action_items'
-        }
-      })
+      // Use the improved AI models directly
+      const aiManager = LocalAIManager.getInstance()
+      await aiManager.initialize()
       
-      if (response.success && response.result) {
-        return {
-          actionItems: response.result.actionItems || [],
-          extractedDates: response.result.extractedDates || [],
-          confidence: 0.9,
-          method: 'llm'
-        }
+      // Extract action items using AI
+      const actionItems = await aiManager.extractActionItems(message.body)
+      
+      // Extract dates using AI
+      const extractedDates = await aiManager.extractDates(message.body)
+      
+      return {
+        actionItems,
+        extractedDates,
+        confidence: 0.85,
+        method: 'llm'
       }
     } catch (error) {
-      console.error('ReplySage: LLM action extraction failed:', error)
+      console.error('ReplySage: AI action extraction failed:', error)
+      throw new Error('AI extraction not available')
     }
-    
-    throw new Error('LLM extraction not available')
   }
 
   private extractDates(text: string): ExtractedDate[] {
@@ -450,7 +448,7 @@ export class ActionExtractor {
     return 0.5
   }
 
-  private findNearbyDate(actionText: string, fullText: string, dates: ExtractedDate[]): Date | undefined {
+  private findNearbyDate(actionText: string, fullText: string, _dates: ExtractedDate[]): Date | undefined {
     // Find the sentence containing the action
     const sentences = fullText.split(/[.!?]+/)
     const actionSentence = sentences.find(sentence => 

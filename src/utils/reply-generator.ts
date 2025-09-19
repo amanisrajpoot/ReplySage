@@ -1,4 +1,5 @@
-import { EmailMessage, SuggestedReply, UserSettings } from '@/types'
+import { EmailMessage, SuggestedReply } from '@/types'
+import { LocalAIManager } from './ai-models'
 
 export interface ReplyGenerationRequest {
   originalMessage: EmailMessage
@@ -235,32 +236,45 @@ export class ReplyGenerator {
   }
 
   private async generateLocalReplies(request: ReplyGenerationRequest): Promise<ReplyGenerationResult> {
-    // This would integrate with the local AI manager
-    // For now, return a placeholder that would be enhanced with local models
+    const startTime = Date.now()
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'ANALYZE_MESSAGE',
-        payload: {
-          message: request.originalMessage,
-          analysisType: 'reply_suggestion'
-        }
-      })
+      // Use the improved AI models directly
+      const aiManager = LocalAIManager.getInstance()
+      await aiManager.initialize()
       
-      if (response && response.success && response.result) {
-        return {
-          replies: response.result.suggestedReplies || [],
-          confidence: 0.8,
-          method: 'local'
-        }
+      // Generate replies using AI
+      const result = await aiManager.generateReplies(request.originalMessage, request.replyType)
+      
+      // Filter replies by tone and length if specified
+      let filteredReplies = result.replies
+      
+      if (request.tone && request.tone !== 'professional') {
+        filteredReplies = filteredReplies.filter(reply => reply.tone === request.tone)
+      }
+      
+      if (request.length) {
+        filteredReplies = filteredReplies.filter(reply => reply.length === request.length)
+      }
+      
+      // If no replies match the criteria, use template-based generation
+      if (filteredReplies.length === 0) {
+        return await this.generateTemplateReplies(request)
+      }
+      
+      return {
+        replies: filteredReplies,
+        confidence: result.confidence,
+        method: 'local',
+        processingTime: Date.now() - startTime
       }
     } catch (error) {
-      console.error('ReplySage: Local reply generation failed:', error)
+      console.error('ReplySage: Local AI reply generation failed, falling back to templates:', error)
+      return await this.generateTemplateReplies(request)
     }
-    
-    throw new Error('Local reply generation not available')
   }
 
   private async generateCloudReplies(request: ReplyGenerationRequest): Promise<ReplyGenerationResult> {
+    const startTime = Date.now()
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'ANALYZE_WITH_CLOUD',
@@ -274,7 +288,8 @@ export class ReplyGenerator {
         return {
           replies: response.result.suggestedReplies || [],
           confidence: 0.9,
-          method: 'cloud'
+          method: 'cloud',
+          processingTime: Date.now() - startTime
         }
       }
     } catch (error) {
@@ -285,6 +300,7 @@ export class ReplyGenerator {
   }
 
   private async generateTemplateReplies(request: ReplyGenerationRequest): Promise<ReplyGenerationResult> {
+    const startTime = Date.now()
     const templates = this.templates.get(request.replyType) || []
     const filteredTemplates = templates.filter(t => 
       t.tone === request.tone && t.length === request.length
@@ -300,20 +316,23 @@ export class ReplyGenerator {
         return {
           replies: this.processTemplates(templates.slice(0, 3), request),
           confidence: 0.5,
-          method: 'template'
+          method: 'template',
+          processingTime: Date.now() - startTime
         }
       }
       return {
         replies: this.processTemplates(fallbackTemplates.slice(0, 3), request),
         confidence: 0.6,
-        method: 'template'
+        method: 'template',
+        processingTime: Date.now() - startTime
       }
     }
     
     return {
       replies: this.processTemplates(filteredTemplates.slice(0, 3), request),
       confidence: 0.7,
-      method: 'template'
+      method: 'template',
+      processingTime: Date.now() - startTime
     }
   }
 
@@ -358,8 +377,8 @@ export class ReplyGenerator {
       
       return {
         text: content,
-        tone: template.tone,
-        length: template.length,
+        tone: template.tone as 'formal' | 'casual' | 'concise',
+        length: template.length as 'short' | 'medium' | 'long',
         confidence: 0.7
       }
     })
@@ -540,7 +559,7 @@ export class ReplyGenerator {
   }
 
   removeTemplate(templateId: string): boolean {
-    for (const [category, templates] of this.templates.entries()) {
+    for (const [_category, templates] of this.templates.entries()) {
       const index = templates.findIndex(t => t.id === templateId)
       if (index !== -1) {
         templates.splice(index, 1)

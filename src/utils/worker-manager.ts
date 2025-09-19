@@ -74,7 +74,7 @@ export class WorkerManager {
         
         worker.onerror = (error) => {
           console.error('ReplySage: Worker error:', error)
-          this.handleWorkerError(worker, error)
+          this.handleWorkerError(worker, new Error(error.message || 'Worker error'))
         }
         
         this.workers.push(worker)
@@ -87,7 +87,7 @@ export class WorkerManager {
     }
   }
 
-  private handleWorkerMessage(worker: Worker, data: any): void {
+  private handleWorkerMessage(_worker: Worker, data: any): void {
     try {
       const { id, type, payload, error } = data
       
@@ -107,7 +107,7 @@ export class WorkerManager {
       const activeTasks = Array.from(this.activeTasks.values())
       activeTasks.forEach(task => {
         if (this.workers.indexOf(worker) !== -1) {
-          this.failTask(task.id, error)
+          this.failTask(task.id, error as Error)
         }
       })
       
@@ -219,7 +219,7 @@ export class WorkerManager {
       }
     } catch (error) {
       console.error('ReplySage: Failed to execute task:', error)
-      this.failTask(task.id, error)
+      this.failTask(task.id, error as Error)
     }
   }
 

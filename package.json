@@ -8,9 +8,16 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "type-check": "tsc --noEmit"
+    "test:coverage": "vitest --coverage",
+    "test:run": "vitest run",
+    "test:production": "node scripts/test-production.js",
+    "type-check": "tsc --noEmit",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -19,8 +26,7 @@
     "uuid": "^9.0.1",
     "date-fns": "^2.30.0",
     "@xenova/transformers": "^2.6.2",
-    "onnxruntime-web": "^1.16.3",
-    "sentence-transformers": "^2.2.2"
+    "onnxruntime-web": "^1.16.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -38,6 +44,11 @@
     "vite-plugin-web-extension": "^4.1.1",
     "vitest": "^1.0.4",
     "@vitest/ui": "^1.0.4",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/user-event": "^14.5.1",
+    "jsdom": "^23.0.1",
+    "prettier": "^3.1.1",
     "tailwindcss": "^3.3.6",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32"

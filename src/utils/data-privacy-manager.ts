@@ -233,7 +233,7 @@ export class DataPrivacyManager {
         request.status = 'completed'
       } catch (error) {
         request.status = 'failed'
-        request.error = error.message
+        request.error = (error as Error).message
       }
 
       this.auditLog.push({
@@ -388,7 +388,7 @@ export class DataPrivacyManager {
 
   async cleanupExpiredData(): Promise<void> {
     try {
-      const now = new Date()
+      // const _now = new Date()
       
       // Clean up analysis data
       if (this.retentionPolicy.analysisData > 0) {

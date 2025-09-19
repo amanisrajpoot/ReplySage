@@ -57,7 +57,7 @@ export const CloudProviderSettings: React.FC<CloudProviderSettingsProps> = ({
     }
 
     setProvider(defaultConfigs[name])
-    setBaseUrl(defaultConfigs[name].baseUrl || '')
+    setBaseUrl((defaultConfigs[name] as any).baseUrl || '')
   }
 
   const handleSave = () => {
@@ -108,7 +108,7 @@ export const CloudProviderSettings: React.FC<CloudProviderSettingsProps> = ({
         setTestResult({ success: false, message: response.error || 'Test failed' })
       }
     } catch (error) {
-      setTestResult({ success: false, message: 'Test failed: ' + error.message })
+      setTestResult({ success: false, message: 'Test failed: ' + (error as Error).message })
     } finally {
       setIsTesting(false)
     }
