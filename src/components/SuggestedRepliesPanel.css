@@ -1,0 +1,363 @@
+/* Suggested Replies Panel Styles */
+.suggested-replies-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.panel-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.generate-button {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.generate-button:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.generate-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.reply-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-select {
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.custom-prompt-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.custom-prompt-section label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.custom-prompt-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.custom-prompt-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.compose-settings {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.replies-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.no-replies {
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.reply-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 20px;
+  transition: background-color 0.2s;
+}
+
+.reply-item:hover {
+  background: #f8f9fa;
+}
+
+.reply-item.selected {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+}
+
+.reply-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reply-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.reply-tone,
+.reply-length,
+.reply-confidence {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 500;
+}
+
+.reply-confidence {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.reply-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.select-button,
+.insert-button,
+.copy-button {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.select-button:hover {
+  background: #d1fae5;
+}
+
+.insert-button:hover {
+  background: #dbeafe;
+}
+
+.copy-button:hover {
+  background: #fef3c7;
+}
+
+.reply-content {
+  color: #374151;
+  line-height: 1.5;
+}
+
+.reply-content p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.generating-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.generating-spinner {
+  font-size: 24px;
+  margin-bottom: 12px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.generating-overlay p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .reply-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .reply-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .reply-meta {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .reply-actions {
+    justify-content: center;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .suggested-replies-panel {
+    background: #2a2a2a;
+    color: #e5e5e5;
+  }
+  
+  .panel-header {
+    background: #1a1a1a;
+    border-bottom-color: #333;
+  }
+  
+  .panel-header h3 {
+    color: #e5e5e5;
+  }
+  
+  .reply-controls,
+  .custom-prompt-section,
+  .compose-settings {
+    background: #1a1a1a;
+    border-bottom-color: #333;
+  }
+  
+  .control-group label {
+    color: #d0d0d0;
+  }
+  
+  .control-select,
+  .custom-prompt-input {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #e5e5e5;
+  }
+  
+  .control-select:focus,
+  .custom-prompt-input:focus {
+    border-color: #3b82f6;
+  }
+  
+  .reply-item {
+    border-bottom-color: #333;
+  }
+  
+  .reply-item:hover {
+    background: #1a1a1a;
+  }
+  
+  .reply-item.selected {
+    background: #1e3a8a;
+    border-left-color: #3b82f6;
+  }
+  
+  .reply-tone,
+  .reply-length {
+    background: #444;
+    color: #d0d0d0;
+  }
+  
+  .reply-confidence {
+    background: #1e40af;
+    color: #dbeafe;
+  }
+  
+  .reply-content {
+    color: #d0d0d0;
+  }
+  
+  .no-replies {
+    color: #a0a0a0;
+  }
+  
+  .generating-overlay {
+    background: rgba(42, 42, 42, 0.9);
+  }
+  
+  .generating-overlay p {
+    color: #a0a0a0;
+  }
+}

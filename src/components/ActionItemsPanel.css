@@ -1,0 +1,412 @@
+/* Action Items Panel Styles */
+.action-items-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.panel-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-select,
+.sort-select {
+  padding: 4px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+  color: #374151;
+}
+
+.filter-select:focus,
+.sort-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.action-items-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.no-actions {
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.action-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 20px;
+  transition: background-color 0.2s;
+}
+
+.action-item:hover {
+  background: #f8f9fa;
+}
+
+.action-item.completed {
+  opacity: 0.6;
+  background: #f8f9fa;
+}
+
+.action-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-priority {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-badge {
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.category-icon {
+  font-size: 14px;
+}
+
+.action-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.complete-button,
+.edit-button,
+.delete-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.complete-button:hover {
+  background: #d1fae5;
+}
+
+.edit-button:hover {
+  background: #dbeafe;
+}
+
+.delete-button:hover {
+  background: #fee;
+}
+
+.action-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.completed-text {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-input {
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-button,
+.cancel-button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.save-button:hover {
+  background: #2563eb;
+}
+
+.cancel-button {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.cancel-button:hover {
+  background: #e5e7eb;
+}
+
+.action-due-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.due-label {
+  font-weight: 500;
+}
+
+.due-date {
+  color: #374151;
+}
+
+.calendar-button {
+  background: none;
+  border: none;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.calendar-button:hover {
+  background: #dbeafe;
+}
+
+.extracted-dates-section {
+  border-top: 1px solid #e0e0e0;
+  padding: 16px 20px;
+  background: #f8f9fa;
+}
+
+.extracted-dates-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.date-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.date-text {
+  font-weight: 500;
+  color: #374151;
+}
+
+.date-value {
+  color: #666;
+}
+
+.date-type {
+  padding: 2px 6px;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.panel-footer {
+  border-top: 1px solid #e0e0e0;
+  padding: 12px 20px;
+  background: #f8f9fa;
+}
+
+.action-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #666;
+}
+
+.stat {
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .panel-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .panel-controls {
+    justify-content: space-between;
+  }
+  
+  .action-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  
+  .action-priority {
+    justify-content: space-between;
+  }
+  
+  .action-actions {
+    justify-content: flex-end;
+  }
+  
+  .action-stats {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .action-items-panel {
+    background: #2a2a2a;
+    color: #e5e5e5;
+  }
+  
+  .panel-header {
+    background: #1a1a1a;
+    border-bottom-color: #333;
+  }
+  
+  .panel-header h3 {
+    color: #e5e5e5;
+  }
+  
+  .filter-select,
+  .sort-select {
+    background: #1a1a1a;
+    border-color: #444;
+    color: #e5e5e5;
+  }
+  
+  .action-item {
+    border-bottom-color: #333;
+  }
+  
+  .action-item:hover {
+    background: #1a1a1a;
+  }
+  
+  .action-item.completed {
+    background: #1a1a1a;
+  }
+  
+  .action-text {
+    color: #d0d0d0;
+  }
+  
+  .completed-text {
+    color: #666;
+  }
+  
+  .edit-input {
+    background: #1a1a1a;
+    border-color: #444;
+    color: #e5e5e5;
+  }
+  
+  .extracted-dates-section {
+    background: #1a1a1a;
+    border-top-color: #333;
+  }
+  
+  .extracted-dates-section h4 {
+    color: #d0d0d0;
+  }
+  
+  .date-item {
+    background: #2a2a2a;
+    border-color: #333;
+  }
+  
+  .date-text {
+    color: #d0d0d0;
+  }
+  
+  .date-value {
+    color: #a0a0a0;
+  }
+  
+  .date-type {
+    background: #444;
+    color: #d0d0d0;
+  }
+  
+  .panel-footer {
+    background: #1a1a1a;
+    border-top-color: #333;
+  }
+}

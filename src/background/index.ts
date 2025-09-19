@@ -3,6 +3,13 @@ import { LocalAIManager } from '@/utils/ai-models'
 import { ModelAssetManager } from '@/utils/model-asset-manager'
 import { OfflineManager } from '@/utils/offline-manager'
 import { FallbackManager } from '@/utils/fallback-manager'
+import { CloudAPIManager, CloudProvider } from '@/utils/cloud-apis'
+import { PIIRedactionManager } from '@/utils/pii-redaction'
+import { ActionExtractor } from '@/utils/action-extractor'
+import { CalendarIntegration } from '@/utils/calendar-integration'
+import { ReplyGenerator } from '@/utils/reply-generator'
+import { ComposeIntegration } from '@/utils/compose-integration'
+import { EmbeddingsManager } from '@/utils/embeddings-manager'
 
 class ReplySageBackground {
   private settings: UserSettings
@@ -12,6 +19,13 @@ class ReplySageBackground {
   private assetManager: ModelAssetManager
   private offlineManager: OfflineManager
   private fallbackManager: FallbackManager
+  private cloudManager: CloudAPIManager
+  private piiManager: PIIRedactionManager
+  private actionExtractor: ActionExtractor
+  private calendarIntegration: CalendarIntegration
+  private replyGenerator: ReplyGenerator
+  private composeIntegration: ComposeIntegration
+  private embeddingsManager: EmbeddingsManager
 
   constructor() {
     this.initializeSettings()
@@ -37,12 +51,37 @@ class ReplySageBackground {
       this.assetManager = ModelAssetManager.getInstance()
       this.offlineManager = OfflineManager.getInstance()
       this.fallbackManager = FallbackManager.getInstance()
+      this.cloudManager = CloudAPIManager.getInstance()
+      this.piiManager = PIIRedactionManager.getInstance()
+      this.actionExtractor = ActionExtractor.getInstance()
+      this.calendarIntegration = CalendarIntegration.getInstance()
+      this.replyGenerator = ReplyGenerator.getInstance()
+      this.composeIntegration = ComposeIntegration.getInstance()
+      this.embeddingsManager = EmbeddingsManager.getInstance()
       
       // Initialize AI manager
       await this.aiManager.initialize()
       
       // Initialize offline manager
       await this.offlineManager.initialize()
+      
+      // Initialize PII redaction manager
+      await this.piiManager.initialize()
+      
+      // Initialize action extractor
+      await this.actionExtractor.initialize()
+      
+      // Initialize calendar integration
+      await this.calendarIntegration.initialize()
+      
+      // Initialize reply generator
+      await this.replyGenerator.initialize()
+      
+      // Initialize compose integration
+      await this.composeIntegration.initialize()
+      
+      // Initialize embeddings manager
+      await this.embeddingsManager.initialize()
       
       // Check asset status
       await this.assetManager.checkAssetStatus()
@@ -63,7 +102,11 @@ class ReplySageBackground {
       preferredTone: 'casual',
       maxSummaryLength: 200,
       enableThreadAnalysis: false,
-      enableSimilaritySearch: false
+      enableSimilaritySearch: false,
+      cloudConsentGiven: false,
+      preferredCloudProvider: '',
+      maxCloudCostPerDay: 1.0,
+      enableCloudNotifications: true
     }
   }
 
@@ -96,6 +139,51 @@ class ReplySageBackground {
           break
         case 'GET_ASSET_STATUS':
           await this.handleGetAssetStatus(sendResponse)
+          break
+        case 'ADD_CLOUD_PROVIDER':
+          await this.handleAddCloudProvider(message.payload, sendResponse)
+          break
+        case 'TEST_CLOUD_PROVIDER':
+          await this.handleTestCloudProvider(message.payload, sendResponse)
+          break
+        case 'GET_CLOUD_PROVIDERS':
+          await this.handleGetCloudProviders(sendResponse)
+          break
+        case 'REMOVE_CLOUD_PROVIDER':
+          await this.handleRemoveCloudProvider(message.payload, sendResponse)
+          break
+        case 'ANALYZE_WITH_CLOUD':
+          await this.handleAnalyzeWithCloud(message.payload, sendResponse)
+          break
+        case 'EXTRACT_ACTIONS':
+          await this.handleExtractActions(message.payload, sendResponse)
+          break
+        case 'CREATE_CALENDAR_EVENT':
+          await this.handleCreateCalendarEvent(message.payload, sendResponse)
+          break
+        case 'GET_CALENDAR_PROVIDERS':
+          await this.handleGetCalendarProviders(sendResponse)
+          break
+        case 'GENERATE_REPLIES':
+          await this.handleGenerateReplies(message.payload, sendResponse)
+          break
+        case 'INSERT_REPLY':
+          await this.handleInsertReply(message.payload, sendResponse)
+          break
+        case 'GET_COMPOSE_OPTIONS':
+          await this.handleGetComposeOptions(sendResponse)
+          break
+        case 'GENERATE_EMBEDDING':
+          await this.handleGenerateEmbedding(message.payload, sendResponse)
+          break
+        case 'SEARCH_SIMILAR':
+          await this.handleSearchSimilar(message.payload, sendResponse)
+          break
+        case 'GET_EMBEDDING_STATS':
+          await this.handleGetEmbeddingStats(sendResponse)
+          break
+        case 'CLEAR_EMBEDDINGS':
+          await this.handleClearEmbeddings(sendResponse)
           break
         case 'GET_SETTINGS':
           sendResponse({ settings: this.settings })
@@ -161,28 +249,79 @@ class ReplySageBackground {
           console.log('ReplySage: Local AI analysis completed')
         }
       } catch (aiError) {
-        console.error('ReplySage: Local AI analysis failed, using fallback:', aiError)
+        console.error('ReplySage: Local AI analysis failed, trying cloud fallback:', aiError)
         
-        // Use fallback manager for better analysis
-        try {
-          analysis = await this.fallbackManager.analyzeEmailWithFallback(message)
-          console.log('ReplySage: Fallback analysis completed')
-        } catch (fallbackError) {
-          console.error('ReplySage: Fallback analysis failed, using minimal analysis:', fallbackError)
-          
-          // Final fallback to minimal analysis
-          analysis = {
-            messageId: message.id,
-            summary: this.generateMockSummary(message),
-            actionItems: this.generateMockActionItems(message),
-            suggestedReplies: this.generateMockReplies(message),
-            grammarIssues: this.generateMockGrammarIssues(message),
-            sentiment: 'neutral',
-            priority: 'medium',
-            categories: ['general'],
-            extractedDates: [],
-            createdAt: new Date(),
-            modelUsed: 'local'
+        // Try cloud fallback if enabled
+        if (this.settings.enableCloudFallback && this.cloudManager.hasProviders()) {
+          try {
+            console.log('ReplySage: Attempting cloud analysis')
+            const cloudResponse = await this.cloudManager.analyzeWithCloud({
+              message,
+              redactedMessage: this.settings.enablePIIRedaction 
+                ? this.piiManager.redactEmail(message).redactedMessage 
+                : message,
+              analysisType: 'full',
+              userPreferences: {
+                tone: this.settings.preferredTone,
+                maxSummaryLength: this.settings.maxSummaryLength,
+                preferredLanguage: 'en'
+              }
+            })
+            
+            if (cloudResponse.success && cloudResponse.result) {
+              analysis = cloudResponse.result
+              console.log('ReplySage: Cloud analysis completed')
+            } else {
+              throw new Error(cloudResponse.error || 'Cloud analysis failed')
+            }
+          } catch (cloudError) {
+            console.error('ReplySage: Cloud analysis failed, using fallback:', cloudError)
+            
+            // Use fallback manager for better analysis
+            try {
+              analysis = await this.fallbackManager.analyzeEmailWithFallback(message)
+              console.log('ReplySage: Fallback analysis completed')
+            } catch (fallbackError) {
+              console.error('ReplySage: Fallback analysis failed, using minimal analysis:', fallbackError)
+              
+              // Final fallback to minimal analysis
+              analysis = {
+                messageId: message.id,
+                summary: this.generateMockSummary(message),
+                actionItems: this.generateMockActionItems(message),
+                suggestedReplies: this.generateMockReplies(message),
+                grammarIssues: this.generateMockGrammarIssues(message),
+                sentiment: 'neutral',
+                priority: 'medium',
+                categories: ['general'],
+                extractedDates: [],
+                createdAt: new Date(),
+                modelUsed: 'local'
+              }
+            }
+          }
+        } else {
+          // Use fallback manager for better analysis
+          try {
+            analysis = await this.fallbackManager.analyzeEmailWithFallback(message)
+            console.log('ReplySage: Fallback analysis completed')
+          } catch (fallbackError) {
+            console.error('ReplySage: Fallback analysis failed, using minimal analysis:', fallbackError)
+            
+            // Final fallback to minimal analysis
+            analysis = {
+              messageId: message.id,
+              summary: this.generateMockSummary(message),
+              actionItems: this.generateMockActionItems(message),
+              suggestedReplies: this.generateMockReplies(message),
+              grammarIssues: this.generateMockGrammarIssues(message),
+              sentiment: 'neutral',
+              priority: 'medium',
+              categories: ['general'],
+              extractedDates: [],
+              createdAt: new Date(),
+              modelUsed: 'local'
+            }
           }
         }
       }
@@ -295,6 +434,246 @@ class ReplySageBackground {
       })
     } catch (error) {
       console.error('ReplySage: Error getting asset status:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleAddCloudProvider(provider: CloudProvider, sendResponse: (response: any) => void) {
+    try {
+      await this.cloudManager.addProvider(provider)
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error adding cloud provider:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleTestCloudProvider(provider: CloudProvider, sendResponse: (response: any) => void) {
+    try {
+      const success = await this.cloudManager.testProvider(provider)
+      sendResponse({ success, error: success ? null : 'Connection test failed' })
+    } catch (error) {
+      console.error('ReplySage: Error testing cloud provider:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetCloudProviders(sendResponse: (response: any) => void) {
+    try {
+      const providers = this.cloudManager.getAvailableProviders()
+      sendResponse({ success: true, providers })
+    } catch (error) {
+      console.error('ReplySage: Error getting cloud providers:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleRemoveCloudProvider(providerName: string, sendResponse: (response: any) => void) {
+    try {
+      await this.cloudManager.removeProvider(providerName)
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error removing cloud provider:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleAnalyzeWithCloud(request: { message: EmailMessage; analysisType: string }, sendResponse: (response: any) => void) {
+    try {
+      // Check if cloud fallback is enabled
+      if (!this.settings.enableCloudFallback) {
+        sendResponse({ success: false, error: 'Cloud fallback is disabled' })
+        return
+      }
+
+      // Check if we have cloud providers
+      if (!this.cloudManager.hasProviders()) {
+        sendResponse({ success: false, error: 'No cloud providers configured' })
+        return
+      }
+
+      // Redact PII if enabled
+      let redactedMessage = request.message
+      let redactionResult = null
+      
+      if (this.settings.enablePIIRedaction) {
+        const redaction = this.piiManager.redactEmail(request.message)
+        redactedMessage = redaction.redactedMessage
+        redactionResult = redaction.redactionResult
+      }
+
+      // Prepare cloud analysis request
+      const cloudRequest = {
+        message: request.message,
+        redactedMessage,
+        analysisType: request.analysisType as any,
+        userPreferences: {
+          tone: this.settings.preferredTone,
+          maxSummaryLength: this.settings.maxSummaryLength,
+          preferredLanguage: 'en'
+        }
+      }
+
+      // Send to cloud for analysis
+      const response = await this.cloudManager.analyzeWithCloud(cloudRequest)
+      
+      if (response.success) {
+        // Cache the result if caching is enabled
+        if (this.settings.enableCaching) {
+          const cacheKey = `analysis_${request.message.id}`
+          await this.cacheAnalysis(cacheKey, response.result!)
+        }
+      }
+
+      sendResponse(response)
+    } catch (error) {
+      console.error('ReplySage: Error analyzing with cloud:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleExtractActions(message: EmailMessage, sendResponse: (response: any) => void) {
+    try {
+      const result = await this.actionExtractor.extractActions(message)
+      sendResponse({ success: true, result })
+    } catch (error) {
+      console.error('ReplySage: Error extracting actions:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleCreateCalendarEvent(request: { action?: any; date?: any; title: string; description?: string }, sendResponse: (response: any) => void) {
+    try {
+      let result: any
+      
+      if (request.action) {
+        result = await this.calendarIntegration.createEventFromAction(request.action, request.description)
+      } else if (request.date) {
+        result = await this.calendarIntegration.createEventFromDate(request.date, request.title, request.description)
+      } else {
+        throw new Error('Either action or date must be provided')
+      }
+      
+      sendResponse({ success: true, result })
+    } catch (error) {
+      console.error('ReplySage: Error creating calendar event:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetCalendarProviders(sendResponse: (response: any) => void) {
+    try {
+      const providers = await this.calendarIntegration.getCalendarProviders()
+      const preferred = await this.calendarIntegration.getPreferredCalendarProvider()
+      
+      sendResponse({ 
+        success: true, 
+        providers,
+        preferred
+      })
+    } catch (error) {
+      console.error('ReplySage: Error getting calendar providers:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGenerateReplies(request: { message: EmailMessage; replyType: string; tone: string; length: string; customPrompt?: string }, sendResponse: (response: any) => void) {
+    try {
+      const result = await this.replyGenerator.generateReplies({
+        originalMessage: request.message,
+        replyType: request.replyType as any,
+        tone: request.tone as any,
+        length: request.length as any,
+        customPrompt: request.customPrompt
+      })
+      
+      sendResponse({ success: true, result })
+    } catch (error) {
+      console.error('ReplySage: Error generating replies:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleInsertReply(request: { reply: string; method: string }, sendResponse: (response: any) => void) {
+    try {
+      const result = await this.composeIntegration.insertReply(
+        { text: request.reply, tone: 'professional', length: 'medium', confidence: 1.0 },
+        { method: request.method as any }
+      )
+      
+      sendResponse({ success: true, result })
+    } catch (error) {
+      console.error('ReplySage: Error inserting reply:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetComposeOptions(sendResponse: (response: any) => void) {
+    try {
+      const options = await this.composeIntegration.getComposeOptions()
+      const info = await this.composeIntegration.getComposeAreaInfo()
+      
+      sendResponse({ 
+        success: true, 
+        options,
+        info
+      })
+    } catch (error) {
+      console.error('ReplySage: Error getting compose options:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGenerateEmbedding(request: { message: EmailMessage; text: string; category?: string; priority?: string }, sendResponse: (response: any) => void) {
+    try {
+      const embeddingId = await this.embeddingsManager.storeEmbedding(
+        request.message,
+        request.text,
+        request.category,
+        request.priority
+      )
+      
+      sendResponse({ success: true, embeddingId })
+    } catch (error) {
+      console.error('ReplySage: Error generating embedding:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleSearchSimilar(request: { query: string; limit?: number; threshold?: number; category?: string; sender?: string; dateRange?: { start: Date; end: Date } }, sendResponse: (response: any) => void) {
+    try {
+      const result = await this.embeddingsManager.searchSimilar({
+        text: request.query,
+        limit: request.limit,
+        threshold: request.threshold,
+        category: request.category,
+        sender: request.sender,
+        dateRange: request.dateRange
+      })
+      
+      sendResponse({ success: true, result })
+    } catch (error) {
+      console.error('ReplySage: Error searching similar:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleGetEmbeddingStats(sendResponse: (response: any) => void) {
+    try {
+      const stats = await this.embeddingsManager.getEmbeddingStats()
+      sendResponse({ success: true, stats })
+    } catch (error) {
+      console.error('ReplySage: Error getting embedding stats:', error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  private async handleClearEmbeddings(sendResponse: (response: any) => void) {
+    try {
+      await this.embeddingsManager.clearAllEmbeddings()
+      sendResponse({ success: true })
+    } catch (error) {
+      console.error('ReplySage: Error clearing embeddings:', error)
       sendResponse({ success: false, error: error.message })
     }
   }

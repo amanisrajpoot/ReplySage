@@ -110,6 +110,10 @@ class ReplySageOptions {
     document.getElementById('manageModels').addEventListener('click', () => {
       this.openModelManager()
     })
+
+    document.getElementById('manageCloudProviders').addEventListener('click', () => {
+      this.openCloudProviderManager()
+    })
   }
 
   updateUI() {
@@ -452,6 +456,361 @@ class ReplySageOptions {
     } catch (error) {
       console.error('ReplySage: Failed to download models:', error)
       this.showNotification('Failed to download models', 'error')
+    }
+  }
+
+  openCloudProviderManager() {
+    // Create and show the cloud provider manager modal
+    const modal = document.createElement('div')
+    modal.id = 'cloud-provider-manager-modal'
+    modal.innerHTML = `
+      <div class="cloud-provider-manager-overlay">
+        <div class="cloud-provider-manager-modal">
+          <div class="cloud-provider-manager-header">
+            <h2>Cloud Provider Manager</h2>
+            <button class="close-button" onclick="this.closest('.cloud-provider-manager-overlay').remove()">×</button>
+          </div>
+          <div class="cloud-provider-manager-content">
+            <div id="cloud-provider-manager-content">
+              <p>Loading cloud providers...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+    
+    // Add styles
+    const style = document.createElement('link')
+    style.rel = 'stylesheet'
+    style.href = 'components/CloudProviderSettings.css'
+    document.head.appendChild(style)
+    
+    document.body.appendChild(modal)
+    
+    // Load cloud provider information
+    this.loadCloudProviderManagerContent()
+  }
+
+  async loadCloudProviderManagerContent() {
+    const content = document.getElementById('cloud-provider-manager-content')
+    if (!content) return
+
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GET_CLOUD_PROVIDERS' })
+      
+      if (response.success) {
+        this.renderCloudProviderManager(response.providers)
+      } else {
+        content.innerHTML = '<p class="error-message">Failed to load cloud providers</p>'
+      }
+    } catch (error) {
+      console.error('ReplySage: Failed to load cloud provider manager content:', error)
+      content.innerHTML = '<p class="error-message">Failed to load cloud providers</p>'
+    }
+  }
+
+  renderCloudProviderManager(providers) {
+    const content = document.getElementById('cloud-provider-manager-content')
+    if (!content) return
+
+    let html = `
+      <div class="providers-section">
+        <div class="providers-header">
+          <h3>Configured Providers</h3>
+          <button id="add-provider" class="add-provider-button">
+            + Add Provider
+          </button>
+        </div>
+        <div class="providers-list">
+    `
+
+    if (providers.length === 0) {
+      html += `
+        <div class="no-providers">
+          <p>No cloud providers configured yet.</p>
+          <p>Add a provider to enable cloud AI processing.</p>
+        </div>
+      `
+    } else {
+      providers.forEach(provider => {
+        html += `
+          <div class="provider-item">
+            <div class="provider-info">
+              <h4>${provider.toUpperCase()}</h4>
+              <p>Configured and ready</p>
+            </div>
+            <div class="provider-actions">
+              <button class="test-button" data-provider="${provider}">Test</button>
+              <button class="remove-button" data-provider="${provider}">Remove</button>
+            </div>
+          </div>
+        `
+      })
+    }
+
+    html += `
+        </div>
+      </div>
+      <div class="cloud-provider-manager-footer">
+        <p class="info-text">
+          Cloud providers use your own API keys for enhanced AI processing.
+          Your data is sent directly to the provider - we never see it.
+        </p>
+      </div>
+    `
+
+    content.innerHTML = html
+
+    // Add event listeners
+    document.getElementById('add-provider')?.addEventListener('click', () => {
+      this.openCloudProviderSettings()
+    })
+
+    document.querySelectorAll('.test-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const provider = e.target.getAttribute('data-provider')
+        this.testCloudProvider(provider)
+      })
+    })
+
+    document.querySelectorAll('.remove-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const provider = e.target.getAttribute('data-provider')
+        this.removeCloudProvider(provider)
+      })
+    })
+  }
+
+  openCloudProviderSettings(existingProvider = null) {
+    const modal = document.createElement('div')
+    modal.id = 'cloud-provider-settings-modal'
+    modal.innerHTML = `
+      <div class="cloud-provider-overlay">
+        <div class="cloud-provider-modal">
+          <div class="cloud-provider-header">
+            <h2>${existingProvider ? 'Edit' : 'Add'} Cloud Provider</h2>
+            <button class="close-button" onclick="this.closest('.cloud-provider-overlay').remove()">×</button>
+          </div>
+          <div class="cloud-provider-content">
+            <div class="form-group">
+              <label for="provider-name">Provider</label>
+              <select id="provider-name" ${existingProvider ? 'disabled' : ''}>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="azure">Azure OpenAI</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="api-key">API Key</label>
+              <input id="api-key" type="password" placeholder="Enter your API key" />
+              <small class="help-text">Your API key is encrypted and stored locally.</small>
+            </div>
+            <div class="form-group" id="base-url-group" style="display: none;">
+              <label for="base-url">Base URL</label>
+              <input id="base-url" type="url" placeholder="https://your-resource.openai.azure.com" />
+              <small class="help-text">Your Azure OpenAI endpoint URL</small>
+            </div>
+            <div class="form-group">
+              <label for="model">Model</label>
+              <select id="model">
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="max-tokens">Max Tokens</label>
+                <input id="max-tokens" type="number" value="1000" min="100" max="4000" />
+              </div>
+              <div class="form-group">
+                <label for="temperature">Temperature</label>
+                <input id="temperature" type="range" min="0" max="1" step="0.1" value="0.7" />
+                <div class="range-value">0.7</div>
+              </div>
+            </div>
+            <div id="test-result"></div>
+          </div>
+          <div class="cloud-provider-footer">
+            <button id="test-connection" class="test-button">Test Connection</button>
+            <div class="footer-actions">
+              <button class="cancel-button">Cancel</button>
+              <button class="save-button">Save Provider</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+    
+    document.body.appendChild(modal)
+    
+    // Add event listeners
+    this.setupCloudProviderSettingsEvents(existingProvider)
+  }
+
+  setupCloudProviderSettingsEvents(existingProvider) {
+    const providerSelect = document.getElementById('provider-name')
+    const baseUrlGroup = document.getElementById('base-url-group')
+    const temperatureSlider = document.getElementById('temperature')
+    const rangeValue = document.querySelector('.range-value')
+    const testButton = document.getElementById('test-connection')
+    const saveButton = document.querySelector('.save-button')
+    const cancelButton = document.querySelector('.cancel-button')
+
+    // Provider change handler
+    providerSelect.addEventListener('change', (e) => {
+      const provider = e.target.value
+      const modelSelect = document.getElementById('model')
+      
+      // Show/hide base URL for Azure
+      if (provider === 'azure') {
+        baseUrlGroup.style.display = 'block'
+      } else {
+        baseUrlGroup.style.display = 'none'
+      }
+      
+      // Update model options
+      const models = {
+        openai: [
+          { value: 'gpt-4', label: 'GPT-4' },
+          { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+          { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+        ],
+        anthropic: [
+          { value: 'claude-3-opus', label: 'Claude 3 Opus' },
+          { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
+          { value: 'claude-3-haiku', label: 'Claude 3 Haiku' }
+        ],
+        azure: [
+          { value: 'gpt-4', label: 'GPT-4' },
+          { value: 'gpt-35-turbo', label: 'GPT-3.5 Turbo' }
+        ]
+      }
+      
+      modelSelect.innerHTML = models[provider].map(model => 
+        `<option value="${model.value}">${model.label}</option>`
+      ).join('')
+    })
+
+    // Temperature slider handler
+    temperatureSlider.addEventListener('input', (e) => {
+      rangeValue.textContent = e.target.value
+    })
+
+    // Test connection handler
+    testButton.addEventListener('click', () => {
+      this.testCloudProviderConnection()
+    })
+
+    // Save handler
+    saveButton.addEventListener('click', () => {
+      this.saveCloudProvider()
+    })
+
+    // Cancel handler
+    cancelButton.addEventListener('click', () => {
+      document.getElementById('cloud-provider-settings-modal').remove()
+    })
+  }
+
+  async testCloudProviderConnection() {
+    const testButton = document.getElementById('test-connection')
+    const testResult = document.getElementById('test-result')
+    
+    testButton.textContent = 'Testing...'
+    testButton.disabled = true
+    testResult.innerHTML = ''
+
+    try {
+      const provider = {
+        name: document.getElementById('provider-name').value,
+        apiKey: document.getElementById('api-key').value,
+        model: document.getElementById('model').value,
+        maxTokens: parseInt(document.getElementById('max-tokens').value),
+        temperature: parseFloat(document.getElementById('temperature').value),
+        baseUrl: document.getElementById('base-url').value || undefined
+      }
+
+      const response = await chrome.runtime.sendMessage({
+        type: 'TEST_CLOUD_PROVIDER',
+        payload: provider
+      })
+
+      if (response.success) {
+        testResult.innerHTML = '<div class="test-result success">Connection successful!</div>'
+      } else {
+        testResult.innerHTML = `<div class="test-result error">Test failed: ${response.error}</div>`
+      }
+    } catch (error) {
+      testResult.innerHTML = `<div class="test-result error">Test failed: ${error.message}</div>`
+    } finally {
+      testButton.textContent = 'Test Connection'
+      testButton.disabled = false
+    }
+  }
+
+  async saveCloudProvider() {
+    try {
+      const provider = {
+        name: document.getElementById('provider-name').value,
+        apiKey: document.getElementById('api-key').value,
+        model: document.getElementById('model').value,
+        maxTokens: parseInt(document.getElementById('max-tokens').value),
+        temperature: parseFloat(document.getElementById('temperature').value),
+        baseUrl: document.getElementById('base-url').value || undefined
+      }
+
+      const response = await chrome.runtime.sendMessage({
+        type: 'ADD_CLOUD_PROVIDER',
+        payload: provider
+      })
+
+      if (response.success) {
+        this.showNotification('Cloud provider added successfully', 'success')
+        document.getElementById('cloud-provider-settings-modal').remove()
+        this.loadCloudProviderManagerContent()
+      } else {
+        this.showNotification(`Failed to add provider: ${response.error}`, 'error')
+      }
+    } catch (error) {
+      this.showNotification(`Failed to add provider: ${error.message}`, 'error')
+    }
+  }
+
+  async testCloudProvider(providerName) {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'TEST_CLOUD_PROVIDER',
+        payload: { name: providerName }
+      })
+
+      if (response.success) {
+        this.showNotification(`${providerName} connection successful`, 'success')
+      } else {
+        this.showNotification(`${providerName} test failed: ${response.error}`, 'error')
+      }
+    } catch (error) {
+      this.showNotification(`Test failed: ${error.message}`, 'error')
+    }
+  }
+
+  async removeCloudProvider(providerName) {
+    if (!confirm(`Are you sure you want to remove ${providerName}?`)) {
+      return
+    }
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'REMOVE_CLOUD_PROVIDER',
+        payload: providerName
+      })
+
+      if (response.success) {
+        this.showNotification(`${providerName} removed successfully`, 'success')
+        this.loadCloudProviderManagerContent()
+      } else {
+        this.showNotification(`Failed to remove provider: ${response.error}`, 'error')
+      }
+    } catch (error) {
+      this.showNotification(`Failed to remove provider: ${error.message}`, 'error')
     }
   }
 

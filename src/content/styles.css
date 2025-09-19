@@ -1,4 +1,13 @@
 /* ReplySage Sidebar Styles */
+
+/* Import ActionItemsPanel styles */
+@import url('./components/ActionItemsPanel.css');
+
+/* Import SuggestedRepliesPanel styles */
+@import url('./components/SuggestedRepliesPanel.css');
+
+/* Import SemanticSearchPanel styles */
+@import url('./components/SemanticSearchPanel.css');
 .replysage-sidebar {
   position: fixed;
   top: 0;

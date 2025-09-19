@@ -68,6 +68,49 @@ export interface ExtractedDate {
   confidence: number
 }
 
+export interface EmbeddingVector {
+  id: string
+  messageId: string
+  text: string
+  vector: number[]
+  metadata: {
+    subject: string
+    sender: string
+    timestamp: Date
+    threadId?: string
+    category?: string
+    priority?: string
+  }
+  createdAt: Date
+}
+
+export interface SimilarityResult {
+  messageId: string
+  similarity: number
+  text: string
+  metadata: EmbeddingVector['metadata']
+  distance: number
+}
+
+export interface SearchQuery {
+  text: string
+  limit?: number
+  threshold?: number
+  category?: string
+  dateRange?: {
+    start: Date
+    end: Date
+  }
+  sender?: string
+}
+
+export interface EmbeddingSearchResult {
+  results: SimilarityResult[]
+  totalFound: number
+  query: string
+  processingTime: number
+}
+
 export interface UserSettings {
   enableLocalProcessing: boolean
   enableCloudFallback: boolean
@@ -79,6 +122,10 @@ export interface UserSettings {
   maxSummaryLength: number
   enableThreadAnalysis: boolean
   enableSimilaritySearch: boolean
+  cloudConsentGiven: boolean
+  preferredCloudProvider: string
+  maxCloudCostPerDay: number
+  enableCloudNotifications: boolean
 }
 
 export interface CloudProvider {
